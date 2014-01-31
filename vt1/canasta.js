@@ -1,6 +1,4 @@
-/**
- * @jsx React.DOM
- */
+/** @jsx React.DOM */
 "use strict";
 
 /**
@@ -66,17 +64,16 @@ var ScoreContainer = React.createClass({
    * Update the given round, possibly insert a new round and
    * check for game over.
    *
-   * @param {number} index   Round's index.
-   * @param {object} scores  Object with round scores: c1, b1, c2 and b2.
+   * @param {number} index  Round index.
+   * @param {object} scores Object with round scores: c1, b1, c2 and b2.
    */
-  handleRoundUpdate: function(key, index, scores) {
+  handleRoundUpdate: function(index, scores) {
     var state = this.state;
     var props = ["c1", "b1", "c2", "b2"];
     var totals = {t1: 0, t2: 0};
 
     state.rounds = state.rounds.map(function(round) {
-      // if (round.index === index) {
-      if (round.key === key) {
+      if (round.index === index) {
         $.extend(round, scores);
       }
 
@@ -102,8 +99,8 @@ var ScoreContainer = React.createClass({
           return scores[prop].length > 0;
         });
 
-        if (index === state.rounds.length - 1 && noEmptyValues) {
-          state.rounds.push({key: key + 1, index: index + 1, t1: 0, t2: 0});
+        if (index === state.rounds[state.rounds.length-1].index && noEmptyValues) {
+          state.rounds.push({index: index + 1, t1: 0, t2: 0});
         }
       }
     }
@@ -117,13 +114,40 @@ var ScoreContainer = React.createClass({
       players.push(this.refs["p" + i].getDOMNode().value);
     };
 
-    var blankRound = {key: 0, index: 0, t1: 0, t2: 0, c1: "", b1: "", c2: "", b2: ""};
+    var blankRound = {index: 0, t1: 0, t2: 0, c1: "", b1: "", c2: "", b2: ""};
 
     this.setState({gameOver: false, players: players, rounds: [blankRound]});
 
     this.state.rounds.map(function(round) {
       var elem = this.refs["sf"+round.index].reset();
     }, this);
+  },
+
+  saveResults: function() {
+    if (!this.state.gameOver) {
+      alert("Keskeneräistä peliä ei voida tallentaa.");
+      return;
+    }
+
+    var finalRound;
+    var rounds = this.state.rounds.map(function(round) {
+      finalRound = round;
+      return "Jako " + (round.index + 1) + " Puolue 1: " + round.t1 + " Puolue 2: " + round.t2;
+    });
+
+    var ps = this.state.players;
+    var teams = [
+      "Puolue 1 (" + ps[0] + ", " + ps[2] + ")",
+      "Puolue 2 (" + ps[1] + ", " + ps[3] + ")"
+    ];
+    if (finalRound.t1 > finalRound.t2) {
+      teams[0] = teams[0] + " VOITTAJA";
+    } else {
+      teams[1] = teams[1] + " VOITTAJA";
+    }
+
+    var content = teams.concat(rounds).join("\n");
+    Utils.promptSaveFile(content);
   },
 
   getInitialState: function() {
@@ -135,10 +159,15 @@ var ScoreContainer = React.createClass({
     var roundNodes = this.state.rounds.map(function(round) {
       var player = players[round.index % players.length];
       return (
-        <ScoreForm ref={"sf" + round.index} key={round.key} player={player} round={round} onRoundUpdate={this.handleRoundUpdate}
+        <ScoreForm ref={"sf" + round.index} player={player} round={round} onRoundUpdate={this.handleRoundUpdate}
         gameOver={this.state.gameOver}/>
       );
     }, this);
+
+    var saveBtn = null;
+    if (this.state.gameOver) {
+      saveBtn = <input type="button" onClick={this.saveResults} value="Tallenna" />
+    };
 
     return (
       <div>
@@ -153,6 +182,7 @@ var ScoreContainer = React.createClass({
           <label>Pelaaja 4 <input type="text" ref="p4"/></label>
         </fieldset>
         <input type="button" onClick={this.startNewGame} value="Aloita peli"/>
+        {saveBtn}
         <div>
           {roundNodes}
         </div>
@@ -192,14 +222,21 @@ var ScoreForm = React.createClass({
       this.clearAllIntervals(); // Stop counting.
     }
 
-    this.props.onRoundUpdate(this.props.round.key, this.props.round.index, scores);
+    this.props.onRoundUpdate(this.props.round.index, scores);
   },
 
+  /** Clear form, reset state and start timer. */
   reset: function() {
-    // this.replaceState(this.getInitialState());
-    // Object.keys(this.refs).map(function(ref) {
-    //   this.refs[ref].reset();
-    // }, this);
+    this.replaceState(this.getInitialState());
+    Object.keys(this.refs).map(function(ref) {
+      this.refs[ref].reset();
+    }, this);
+
+    if (this.intervals.length === 0) {
+      this.setInterval(function() {
+        this.setState({seconds: this.state.seconds + 1});
+      }.bind(this), 1000);
+    }
   },
 
   getInitialState: function() {
@@ -239,13 +276,13 @@ var ScoreForm = React.createClass({
           </tr>
           <tr>
             <td><strong>Bonus</strong></td>
-            <td><ValidatorInput validator={validator} ref="c1" initValue={this.props.round.c1} onBlur={this.handleSubmit} autoFocus/></td>
-            <td><ValidatorInput validator={validator} ref="c2" initValue={this.props.round.c2} onBlur={this.handleSubmit}/></td>
+            <td><ValidatorInput validator={validator} ref="c1" onBlur={this.handleSubmit} autoFocus/></td>
+            <td><ValidatorInput validator={validator} ref="c2" onBlur={this.handleSubmit}/></td>
           </tr>
           <tr>
             <td><strong>Kortti</strong></td>
-            <td><ValidatorInput validator={validator} ref="b1" initValue={this.props.round.b1} onBlur={this.handleSubmit}/></td>
-            <td><ValidatorInput validator={validator} ref="b2" initValue={this.props.round.b2} onBlur={this.handleSubmit}/></td>
+            <td><ValidatorInput validator={validator} ref="b1" onBlur={this.handleSubmit}/></td>
+            <td><ValidatorInput validator={validator} ref="b2" onBlur={this.handleSubmit}/></td>
           </tr>
           <tr>
             <td><strong>{displayTime}</strong></td>
@@ -260,7 +297,7 @@ var ScoreForm = React.createClass({
 
 
 /**
- * A input field that changes color when value is invalid.
+ * A input field that changes color when its value is invalid.
  */
 var ValidatorInput = React.createClass({
 
@@ -277,11 +314,11 @@ var ValidatorInput = React.createClass({
   },
 
   getInitialState: function() {
-    return {value: this.props.initValue, isValid: true};
+    return {value: "", isValid: true};
   },
 
   reset: function() {
-    this.setState({value: ""});
+    this.setState({value: "", isValid: true});
   },
 
   render: function() {
