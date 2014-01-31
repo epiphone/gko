@@ -1,4 +1,6 @@
-/** @jsx React.DOM */
+/**
+ * @jsx React.DOM
+ */
 "use strict";
 
 /**
@@ -67,13 +69,14 @@ var ScoreContainer = React.createClass({
    * @param {number} index   Round's index.
    * @param {object} scores  Object with round scores: c1, b1, c2 and b2.
    */
-  handleRoundUpdate: function(index, scores) {
+  handleRoundUpdate: function(key, index, scores) {
     var state = this.state;
     var props = ["c1", "b1", "c2", "b2"];
     var totals = {t1: 0, t2: 0};
 
     state.rounds = state.rounds.map(function(round) {
-      if (round.index === index) {
+      // if (round.index === index) {
+      if (round.key === key) {
         $.extend(round, scores);
       }
 
@@ -93,13 +96,14 @@ var ScoreContainer = React.createClass({
       if (totals.t1 >= 5000 || totals.t2 >= 5000) {
         state.gameOver = true;
       }
-      else {
+      else
+      {
         var noEmptyValues = props.every(function(prop) {
           return scores[prop].length > 0;
         });
 
         if (index === state.rounds.length - 1 && noEmptyValues) {
-          state.rounds.push({index: index + 1, t1:0, t2: 0});
+          state.rounds.push({key: key + 1, index: index + 1, t1: 0, t2: 0});
         }
       }
     }
@@ -113,7 +117,7 @@ var ScoreContainer = React.createClass({
       players.push(this.refs["p" + i].getDOMNode().value);
     };
 
-    var blankRound = {index: 0, t1: 0, t2: 0, c1: "", b1: "", c2: "", b2: ""};
+    var blankRound = {key: 0, index: 0, t1: 0, t2: 0, c1: "", b1: "", c2: "", b2: ""};
 
     this.setState({gameOver: false, players: players, rounds: [blankRound]});
 
@@ -131,7 +135,7 @@ var ScoreContainer = React.createClass({
     var roundNodes = this.state.rounds.map(function(round) {
       var player = players[round.index % players.length];
       return (
-        <ScoreForm ref={"sf" + round.index} player={player} round={round} onRoundUpdate={this.handleRoundUpdate}
+        <ScoreForm ref={"sf" + round.index} key={round.key} player={player} round={round} onRoundUpdate={this.handleRoundUpdate}
         gameOver={this.state.gameOver}/>
       );
     }, this);
@@ -188,14 +192,14 @@ var ScoreForm = React.createClass({
       this.clearAllIntervals(); // Stop counting.
     }
 
-    this.props.onRoundUpdate(this.props.round.index, scores);
+    this.props.onRoundUpdate(this.props.round.key, this.props.round.index, scores);
   },
 
   reset: function() {
-    this.replaceState(this.getInitialState());
-    Object.keys(this.refs).map(function(ref) {
-      this.refs[ref].reset();
-    }, this);
+    // this.replaceState(this.getInitialState());
+    // Object.keys(this.refs).map(function(ref) {
+    //   this.refs[ref].reset();
+    // }, this);
   },
 
   getInitialState: function() {
