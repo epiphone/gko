@@ -1,4 +1,5 @@
 /** @jsx React.DOM */
+"use strict";
 
 /**
  * TIEA212 GKO Viikkotehtävä 1 - Canasta-korttipelin pistelaskuohjelma
@@ -6,70 +7,226 @@
  * 29.1.2014
  */
 
-var ScoreList = React.createClass({
-  /** Invoked whenever a score field value changes. */
-  handleRoundUpdate: function(key, c1, b1, c2, b2) {
-    var rounds = this.state.rounds;
-    var params = [c1, b1, c2, b2];
-    var noNullValues = params.every(function(d) { return d !== null; });
 
-    if (key == rounds.length - 1 && noNullValues) {
-      rounds.push({}); // Add a new round.
-    }
-    else {
-      rounds[key] = {c1: c1, b1: b1, c2: c2, b2: b2}; // Update an existing round.
+var Utils = {
+  /** Maps an integer into a timer string, e.g. 90 --> "00:01:30" */
+  secondsToTimerStr: function(seconds) {
+    var times = [seconds / 3600, seconds / 60, seconds];
+    return times.map(function(d) {
+      var str = (Math.floor(d) % 60).toString();
+      return str.length === 1 ? "0" + str : str;
+    }).join(":");
+  },
+
+  /** A hack to prompt browser to save a file; file type can't be set. */
+  promptSaveFile: function(content) {
+    location.href = "data:application/octet-stream," + encodeURIComponent(content);
+  }
+};
+
+
+/**
+ * A mixin that provides a setInterval function which will get
+ * cleaned up when the component is destroyed.
+ * Adapted from http://facebook.github.io/react/docs/reusable-components
+ */
+var SetIntervalMixin = {
+  setInterval: function() {
+    this.intervals.push(setInterval.apply(null, arguments));
+  },
+
+  clearAllIntervals: function() {
+    this.intervals.map(clearInterval);
+    this.intervals = [];
+  },
+
+  /** Invoked when component is initialized. */
+  componentWillMount: function() {
+    this.intervals = [];
+  },
+
+  /** Invoked when component is destroyed. */
+  componentWillUnmount: function() {
+    this.clearAllIntervals();
+  }
+};
+
+
+// Linting is disabled because React uses a special JSX syntax.
+/* jshint ignore:start */
+
+/**
+ * The parent component.
+ */
+var ScoreContainer = React.createClass({
+
+  /**
+   * Update the given round, possibly insert a new round and
+   * check for game over.
+   *
+   * @param {number} index   Round's index.
+   * @param {object} scores  Object with round scores: c1, b1, c2 and b2.
+   */
+  handleRoundUpdate: function(index, scores) {
+    var state = this.state;
+    var props = ["c1", "b1", "c2", "b2"];
+    var totals = {t1: 0, t2: 0};
+
+    state.rounds = state.rounds.map(function(round) {
+      if (round.index === index) {
+        $.extend(round, scores);
+      }
+
+      var parsed = {};
+      props.forEach(function(prop) {
+        var val = round[prop];
+        parsed[prop] = val ? (parseInt(val.trim()) || 0) : 0;
+      });
+
+      totals.t1 += parsed.c1 + parsed.b1;
+      totals.t2 += parsed.c2 + parsed.b2;
+      return $.extend(round, totals);
+    });
+
+    if (!state.gameOver) {
+
+      if (totals.t1 >= 5000 || totals.t2 >= 5000) {
+        state.gameOver = true;
+      }
+      else {
+        var noEmptyValues = props.every(function(prop) {
+          return scores[prop].length > 0;
+        });
+
+        if (index === state.rounds.length - 1 && noEmptyValues) {
+          state.rounds.push({index: index + 1, t1:0, t2: 0});
+        }
+      }
     }
 
-    this.setState({rounds: rounds});
+    this.setState(state);
+  },
+
+  startNewGame: function() {
+    var players = [];
+    for (var i = 1; i <= 4; i++) {
+      players.push(this.refs["p" + i].getDOMNode().value);
+    };
+
+    var blankRound = {index: 0, t1: 0, t2: 0, c1: "", b1: "", c2: "", b2: ""};
+
+    this.setState({gameOver: false, players: players, rounds: [blankRound]});
+
+    this.state.rounds.map(function(round) {
+      var elem = this.refs["sf"+round.index].reset();
+    }, this);
   },
 
   getInitialState: function() {
-    return {rounds: [{}]};
+    return {rounds: [], gameOver: false};
   },
 
   render: function() {
-    var totals = [0, 0];
-    var key = 0;
-
+    var players = this.state.players;
     var roundNodes = this.state.rounds.map(function(round) {
-      totals[0] += round.c1 + round.b1;
-      totals[1] += round.c2 + round.b2;
-      $.extend(round, {t1: totals[0], t2: totals[1]});
+      var player = players[round.index % players.length];
       return (
-        <ScoreForm key={key++} round={round} onRoundUpdate={this.handleRoundUpdate}/>
+        <ScoreForm ref={"sf" + round.index} player={player} round={round} onRoundUpdate={this.handleRoundUpdate}
+        gameOver={this.state.gameOver}/>
       );
-    }, this)
+    }, this);
 
     return (
       <div>
-        {roundNodes}
+        <fieldset>
+          <legend>Puolue 1</legend>
+          <label>Pelaaja 1 <input type="text" ref="p1"/></label>
+          <label>Pelaaja 3 <input type="text" ref="p3"/></label>
+        </fieldset>
+        <fieldset>
+          <legend>Puolue 2</legend>
+          <label>Pelaaja 2 <input type="text" ref="p2"/></label>
+          <label>Pelaaja 4 <input type="text" ref="p4"/></label>
+        </fieldset>
+        <input type="button" onClick={this.startNewGame} value="Aloita peli"/>
+        <div>
+          {roundNodes}
+        </div>
       </div>
     );
   }
 });
 
 
+/**
+ * Form with 4 input fields, a timer and a total score display.
+ */
 var ScoreForm = React.createClass({
-  handleInput: function(event) {
+
+  mixins: [SetIntervalMixin],
+
+  /** Parses integer values, invokes parent event handler. */
+  handleSubmit: function(event) {
     if (event.target.value.length == 0) {
-      return false;
+      return;
     }
-    var c1 = Utils.parseInt(this.refs.c1.getDOMNode().value);
-    var b1 = Utils.parseInt(this.refs.b1.getDOMNode().value);
-    var c2 = Utils.parseInt(this.refs.c2.getDOMNode().value);
-    var b2 = Utils.parseInt(this.refs.b2.getDOMNode().value);
-    this.props.onRoundUpdate(this.props.key, c1, b1, c2, b2);
+
+    var scores = {};
+    var params = ["c1", "b1", "c2", "b2"];
+    var noEmptyValues = true;
+
+    params.forEach(function(param) {
+      var val = this.refs[param].getValue();
+
+      if (val.length === 0) {
+        noEmptyValues = false;
+      }
+      scores[param] = val;
+    }.bind(this));
+
+    if (noEmptyValues && this.intervals.length > 0) {
+      this.clearAllIntervals(); // Stop counting.
+    }
+
+    this.props.onRoundUpdate(this.props.round.index, scores);
   },
 
-  /** Invoked after component has been rendered. */
+  reset: function() {
+    this.replaceState(this.getInitialState());
+    Object.keys(this.refs).map(function(ref) {
+      this.refs[ref].reset();
+    }, this);
+  },
+
+  getInitialState: function() {
+    return {seconds: 0, player1Class: null, player2Class: null, scores: {}};
+  },
+
+  /** If game over, highlight winning score and stop timer. */
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.gameOver) {
+      var state = this.state;
+      state.player1Class = nextProps.round.t1 > nextProps.round.t2 ? "highlight": null;
+      state.player2Class = !state.player1Class ? "highlight" : null;
+      this.setState(state);
+      this.clearAllIntervals();
+    }
+  },
+
+  /** Invoked after rendering; start timer. */
   componentDidMount: function() {
-    this.refs.c1.getDOMNode().focus();
+    this.setInterval(function() {
+      this.setState({seconds: this.state.seconds + 1});
+    }.bind(this), 1000);
   },
 
   render: function() {
+    var validator = /^\s*[0-9]+\s*$/;
+    var displayTime = Utils.secondsToTimerStr(this.state.seconds);
+
     return (
       <div>
-        Jako {this.props.key + 1} NIMI
+        <p>Jako {this.props.round.index + 1} ({this.props.player})</p>
         <table>
           <tr>
             <td></td>
@@ -78,18 +235,18 @@ var ScoreForm = React.createClass({
           </tr>
           <tr>
             <td><strong>Bonus</strong></td>
-            <td><input type="text" ref="c1" value={this.props.round.c1} onBlur={this.handleInput}/></td>
-            <td><input type="text" ref="c2" value={this.props.round.c2} onBlur={this.handleInput}/></td>
+            <td><ValidatorInput validator={validator} ref="c1" initValue={this.props.round.c1} onBlur={this.handleSubmit} autoFocus/></td>
+            <td><ValidatorInput validator={validator} ref="c2" initValue={this.props.round.c2} onBlur={this.handleSubmit}/></td>
           </tr>
           <tr>
             <td><strong>Kortti</strong></td>
-            <td><input type="text" ref="b1" value={this.props.round.b1} onBlur={this.handleInput}/></td>
-            <td><input type="text" ref="b2" value={this.props.round.b2} onBlur={this.handleInput}/></td>
+            <td><ValidatorInput validator={validator} ref="b1" initValue={this.props.round.b1} onBlur={this.handleSubmit}/></td>
+            <td><ValidatorInput validator={validator} ref="b2" initValue={this.props.round.b2} onBlur={this.handleSubmit}/></td>
           </tr>
           <tr>
-            <td><strong>Yhteensä</strong></td>
-            <td>{this.props.round.t1}</td>
-            <td>{this.props.round.t2}</td>
+            <td><strong>{displayTime}</strong></td>
+            <td className={this.state.player1Class}>{this.props.round.t1}</td>
+            <td className={this.state.player2Class}>{this.props.round.t2}</td>
           </tr>
         </table>
       </div>
@@ -98,7 +255,43 @@ var ScoreForm = React.createClass({
 });
 
 
+/**
+ * A input field that changes color when value is invalid.
+ */
+var ValidatorInput = React.createClass({
+
+  /** Helper for accessing input value - parent can use this also. */
+  getValue: function() {
+    return this.getDOMNode().value;
+  },
+
+  handleChange: function(event) {
+    var value = event.target.value;
+    var isValid = this.props.validator.test(value);
+
+    this.setState({value: value, isValid: isValid});
+  },
+
+  getInitialState: function() {
+    return {value: this.props.initValue, isValid: true};
+  },
+
+  reset: function() {
+    this.setState({value: ""});
+  },
+
+  render: function() {
+    return this.transferPropsTo(
+      <input type="text" ref="input" value={this.state.value} onChange={this.handleChange}
+      className={this.state.isValid ? null : "invalid"}/>
+    );
+  }
+});
+
+
 React.renderComponent(
-  <ScoreList players={["aleksi", "maleksi", "timo", "simo"]}/>,
+  <ScoreContainer/>,
   document.getElementById('content')
 );
+
+/** jshint ignore:end */

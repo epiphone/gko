@@ -1,5 +1,7 @@
 /** @jsx React.DOM */
 
+"use strict";
+
 // Going through the React.js tutorial.
 
 var ReactTransitionGroup = React.addons.TransitionGroup;
@@ -8,7 +10,7 @@ var CommentBox = React.createClass({
   loadCommentsFromServer: function() {
     $.ajax({
       url: this.props.url,
-      dataType: 'json',
+      dataType: "json",
       success: function(data) {
         this.setState({data: data});
       }.bind(this)
@@ -20,8 +22,8 @@ var CommentBox = React.createClass({
     this.setState({data: newComments});
     $.ajax({
       url: this.props.url,
-      dataType: 'json',
-      type: 'POST',
+      dataType: "json",
+      type: "POST",
       data: comment,
       success: function(data) {
         this.setState({data: data});
@@ -64,8 +66,8 @@ var CommentForm = React.createClass({
     var author = this.refs.author.getDOMNode().value.trim();
     var text = this.refs.text.getDOMNode().value.trim();
     this.props.onCommentSubmit({author: author, text: text});
-    this.refs.author.getDOMNode().value = '';
-    this.refs.text.getDOMNode().value = '';
+    this.refs.author.getDOMNode().value = "";
+    this.refs.text.getDOMNode().value = "";
     return false;
   },
   render: function() {
@@ -95,5 +97,5 @@ var Comment = React.createClass({
 
 React.renderComponent(
   <CommentBox url="comments.json" pollInterval={2000} />,
-  document.getElementById('content')
+  document.getElementById("content")
 );
