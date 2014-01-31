@@ -1,0 +1,22 @@
+.timer-container {
+    background-color: #E6E6E6;
+    width: 300px;
+    padding: 20px;
+    text-align: center;
+    border-radius: 25px;
+    border: 1px solid gray;
+}
+
+.timer-container div {
+    text-align: center;
+    margin: 10px;
+}
+
+.invalid {
+    background-color: #FF0000;
+}
+
+input {
+    width: 80px;
+    text-align: center;
+}
