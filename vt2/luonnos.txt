@@ -1,6 +1,0 @@
-<Timer state=secondsLeft props=onTickthis=tick, handleTimerStop, handleTimerStart, handleTimerExpire/>
-  <div timedisplay time={this.secondsLeft}/>
-  <TimeInput ref=timeInput"/>
-  <btn stop/start onClick=handleTimerStop/Start/>
-  <btn reset onClick=handleTimerReset/>
-</Timer>
