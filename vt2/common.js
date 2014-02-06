@@ -27,7 +27,8 @@ var ValidatorInput = React.createClass({
 
   handleChange: function(event) {
     var value = this.refs.input.getDOMNode().value;
-    var isValid = this.props.validator(value);
+    var validationResult = this.props.validator(value);
+    var isValid = !validationResult ? validationResult === 0 : true;
 
     this.setState({value: value, isValid: isValid});
   },
@@ -73,6 +74,7 @@ var ValidatorInput = React.createClass({
 /**
  * A mixin that provides a setInterval function which will get
  * cleaned up when the component is destroyed.
+ *
  * Adapted from http://facebook.github.io/react/docs/reusable-components
  */
 var SetIntervalMixin = {

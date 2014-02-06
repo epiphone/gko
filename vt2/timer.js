@@ -4,7 +4,7 @@
 /**
  * TIEA212 GKO Viikkotehtävä 2 - Keittiöajastinohjelma
  * Aleksi Pekkala (aleksi.v.a.pekkala@student.jyu.fi)
- * 31.1.2014
+ * 6.2.2014
  */
 
 
@@ -51,14 +51,27 @@ var Utils = {
 var TimerContainer = React.createClass({
 
   /** Invoked by the timer component, once per second. */
-  handleTick: function(secondsLeft) {
-    this.setState({secondsLeft: secondsLeft});
+  handleTickEvent: function(seconds) {
+    this.setState({seconds: seconds});
   },
 
   /** Invoked by the timer component upon expiry. */
-  handleExpiry: function() {
+  handleExpireEvent: function() {
     this.setState({timerIsRunning: false});
     alert("Aika loppui!");
+  },
+
+  handleSplitEvent: function(splitSeconds) {
+    var splits = this.state.splits;
+    this.setState({splits: splits.concat(splitSeconds)});
+  },
+
+  handleIdleOverEvent: function(idleTime) {
+    console.log("Caught IdleOver event, idle lasted for " + idleTime + "s");
+  },
+
+  handleTimingOverEvent: function(timingTime) {
+    console.log("Caught TimingOver event, timing lasted for " + timingTime + "s");
   },
 
   handleTimerStart: function() {
@@ -71,41 +84,83 @@ var TimerContainer = React.createClass({
     this.refs.timer.stop();
   },
 
-  /** Parse time from input field, start timer or stopwatch. */
+  /** Parse time from input field, clear splits, start timer or stopwatch. */
   handleTimerReset: function() {
     var seconds = Utils.timerStrToSeconds(this.refs.input.getValue());
-    if (seconds !== null) {
-      this.refs.timer.setTime(seconds);
-      this.setState({secondsLeft: seconds});
+    var stopwatchMode = !seconds;
 
-      if (seconds === 0) {
-        console.log("stopwatch mode"); // TODO
-      }
+    if (seconds !== null) {
+      this.refs.timer.resetTime(seconds);
+      this.setState({
+        seconds: seconds,
+        stopwatchMode: stopwatchMode,
+        splits: []
+      });
     }
+  },
+
+  /** Stop timing, set time to zero, clear splits, start stopwatch mode. */
+  handleTimerHardReset: function() {
+    this.refs.timer.hardReset();
+    this.setState({
+      seconds: 0,
+      timerIsRunning: false,
+      stopwatchMode: true,
+      splits: []
+    });
+  },
+
+  handleTimerSplit: function() {
+    this.refs.timer.split();
   },
 
   /** Invoked after rendering. */
   componentDidMount: function() {
-    this.refs.timer.setTime(this.state.secondsLeft);
+    this.refs.timer.resetTime(this.state.seconds);
   },
 
   getInitialState: function() {
-    return {timerIsRunning: false, secondsLeft: 90};
+    return {
+      timerIsRunning: false,
+      seconds: 90,
+      stopwatchMode: false,
+      splits: []
+    };
   },
 
   render: function() {
     var timerToggleBtn = null;
     if (this.state.timerIsRunning) {
-      timerToggleBtn = <button onClick={this.handleTimerStop}>Stop</button>
+      var toggleBtnText = this.state.stopwatchMode ? "Tauko" : "Stop";
+      timerToggleBtn = <button onClick={this.handleTimerStop}>{toggleBtnText}</button>;
     } else {
-      timerToggleBtn = <button onClick={this.handleTimerStart}>Start</button>
+      timerToggleBtn = <button onClick={this.handleTimerStart}>Start</button>;
+    }
+
+    var splitsBtn = null;
+    var splitsList = null;
+
+    if (this.state.stopwatchMode) {
+      var splitsBtnDisabled = this.state.timerIsRunning ? "" : "disabled";
+      splitsBtn = (
+        <button disabled={splitsBtnDisabled} onClick={this.handleTimerSplit}>
+          Väliaika
+        </button>);
+
+      var splits = this.state.splits.map(function(split) {
+        return <li>{Utils.secondsToTimerStr(split)}</li>;
+      });
+
+      splitsList = <ul className="splits-list">{splits}</ul>;
     }
 
     return (
       <div className="timer-container">
-        <Timer ref="timer" onTick={this.handleTick} onExpiry={this.handleExpiry} />
+        <Timer ref="timer" onTick={this.handleTickEvent} onExpiry={this.handleExpireEvent}
+        onSplit={this.handleSplitEvent} onIdleOver={this.handleIdleOverEvent}
+        onTimingOver={this.handleTimingOverEvent}/>
 
-        <div>{Utils.secondsToTimerStr(this.state.secondsLeft)}</div>
+        <div>{Utils.secondsToTimerStr(this.state.seconds)}</div>
 
         <div>
           {timerToggleBtn}
@@ -117,6 +172,13 @@ var TimerContainer = React.createClass({
         <div>
           <button onClick={this.handleTimerReset}>Reset</button>
         </div>
+        <div>
+          <button onClick={this.handleTimerHardReset}>Nollaa</button>
+        </div>
+        <div>
+          {splitsBtn}
+        </div>
+        {splitsList}
       </div>
     );
   }
@@ -134,42 +196,104 @@ var Timer = React.createClass({
   mixins: [SetIntervalMixin],
 
   isRunning: function() {
-    return this.intervals.length > 0;
+    return this.state.timing;
+  },
+
+  isStopwatchMode: function() {
+    return this.state.startTime === 0;
   },
 
   getTime: function() {
-    return this.state.secondsLeft;
+    return this.state.seconds;
   },
 
-  setTime: function(seconds) {
-    this.setState({secondsLeft: seconds});
+  getSecondsElapsed: function() {
+    if (this.isStopwatchMode()) {
+      return this.state.seconds;
+    }
+    return this.state.startTime - this.state.seconds;
+  },
+
+  getSplits: function() {
+    return this.state.splits;
+  },
+
+  getTimesToggled: function() {
+    return this.state.timesToggled;
+  },
+
+  resetTime: function(seconds) {
+    this.setState({seconds: seconds, startTime: seconds, timesToggled: 0});
   },
 
   start: function() {
-    if (this.getTime() > 0) {
-      this.setInterval(this.tick, 1000);
-    } else {
-      this.props.onExpiry();
-    }
+    this.props.onIdleOver(this.state.timedOrIdledFor);
+
+    this.setState({
+      timing: true,
+      timedOrIdledFor: 0,
+      timesToggled: this.state.timesToggled + 1
+    });
   },
 
   stop: function() {
-    this.clearAllIntervals();
+    this.props.onTimingOver(this.state.timedOrIdledFor);
+
+    this.setState({
+      timing: false,
+      timedOrIdledFor: 0,
+      timesToggled: this.state.timesToggled + 1
+    });
+  },
+
+  split: function() {
+    var splits = this.state.splits;
+    var seconds = this.state.seconds;
+    this.setState({splits: splits.concat(seconds)});
+    this.props.onSplit(seconds);
+  },
+
+  hardReset: function() {
+    this.stop();
+    this.setState({
+      seconds: 0,
+      startTime: 0,
+      splits: [],
+      timesToggled: 0
+    });
   },
 
   tick: function() {
-    this.setState({secondsLeft: this.state.secondsLeft - 1});
+    var timedOrIdledFor = this.state.timedOrIdledFor;
+    this.setState({timedOrIdledFor: ++timedOrIdledFor});
 
-    if (this.getTime() > -1) {
-      this.props.onTick(this.state.secondsLeft);
-    } else {
-      this.clearAllIntervals();
-      this.props.onExpiry();
+    if (this.state.timing) {
+      var increment = this.isStopwatchMode() ? 1 : -1;
+      var newTime = this.getTime() + increment;
+
+      if (newTime > -1) {
+        this.setState({seconds: this.state.seconds + increment});
+        this.props.onTick(this.state.seconds);
+      } else {
+        this.stop();
+        this.props.onExpiry();
+      }
     }
   },
 
+  componentDidMount: function() {
+    this.setInterval(this.tick, 1000);
+  },
+
   getInitialState: function() {
-    return {secondsLeft: 0};
+    return {
+      timing: false,        // Is timer running
+      seconds: 0,           // Current time elapsed in seconds
+      splits: [],           // List of splits
+      startTime: 0,         // Starting time, 0 if in stopwatch mode
+      timedOrIdledFor: 0,   // How many seconds current timing or pause has lasted
+      timesToggled: 0       // How many times timer has been started/stopped
+    };
   },
 
   render: function() {
@@ -179,10 +303,9 @@ var Timer = React.createClass({
 
 
 
-
 React.renderComponent(
   <TimerContainer/>,
-  document.getElementById('content')
+  document.getElementById("content")
 );
 
 /** jshint ignore:end */

@@ -20,3 +20,8 @@ input {
     width: 80px;
     text-align: center;
 }
+
+.splits-list {
+    list-style-type: none;
+    padding: 0;
+}
