@@ -28,6 +28,10 @@ var Utils = {
 /**
  * A mixin that provides a setInterval function which will get
  * cleaned up when the component is destroyed.
+ * 
+ * Mixin is basically like an extension to a component. React.js doesn't support
+ * non-graphical components, so Mixins serve that purpose.
+ * 
  * Adapted from http://facebook.github.io/react/docs/reusable-components
  */
 var SetIntervalMixin = {
