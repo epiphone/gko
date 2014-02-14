@@ -1,0 +1,12 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:VT4" x:Class="VT4.MainWindow"
+        Title="MainWindow" Height="500" Width="525">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Name="scrollViewer">
+        <StackPanel>
+            <local:PuolueetControl PuolueetSubmitted="OnPuolueetSubmitted"/>
+            <StackPanel Name="panel" SizeChanged="panel_SizeChanged"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>

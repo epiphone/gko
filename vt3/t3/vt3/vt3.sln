@@ -1,7 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vt3", "vt3.csproj", "{93E0EF94-915B-49E6-A544-2E9077CC2580}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VT3", "VT3.csproj", "{93E0EF94-915B-49E6-A544-2E9077CC2580}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VT3Controls", "..\VT3Controls\VT3Controls.csproj", "{BF454308-A9C6-4253-A0C2-66D97DCA0584}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +15,10 @@ Global
 		{93E0EF94-915B-49E6-A544-2E9077CC2580}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93E0EF94-915B-49E6-A544-2E9077CC2580}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93E0EF94-915B-49E6-A544-2E9077CC2580}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF454308-A9C6-4253-A0C2-66D97DCA0584}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF454308-A9C6-4253-A0C2-66D97DCA0584}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF454308-A9C6-4253-A0C2-66D97DCA0584}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF454308-A9C6-4253-A0C2-66D97DCA0584}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
