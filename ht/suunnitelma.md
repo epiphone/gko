@@ -16,8 +16,7 @@ Tarkoituksena on toteuttaa läjä web-pohjaisia komponentteja, joista voidaan mu
 </div>
 ```
 
-Tarvittaessa tehtävään voidaan liittää oma kontrolleri (javascript-moduuli), jolloin tehtävä voi olla laajempi. 
-
+Esimerkin random- ja checkAnswer-funktiot löytyvät siis jostakin kaikille tehtäville yhteisestä kontrollerista (javascript-moduuli). Monimutkaisempia tehtäviä varten voidaan luoda omat alikontrollerit, mutta harjoitustyön pääpaino on yksinkertaisten HTML-pohjaisten tehtävien luomisessa. Tehtävämalli lainaa vahvasti [Khan Academyn tehtävätyökalusta](https://github.com/Khan/khan-exercises), joskin harjoitustyöohjelma on huomattavasti yksinkertaisempi.
 
 
 ## Tavoitetaso
@@ -39,6 +38,9 @@ Toinen tärkeä komponentti on elementti jonka sisälle voidaan upottaa Latexin 
 ## Aikataulu
 
 **21.2.** Suunnitelma
+
 **28.2.** Koordinaatisto toimii
+
 **7.3.** Toiminnallisuudet valmiina eli tehtäviä voi luoda 
-** 13.3. ** Koko työ on valmis
+
+**13.3.** Koko työ on valmis
