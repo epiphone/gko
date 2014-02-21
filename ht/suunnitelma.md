@@ -35,6 +35,8 @@ Laajin yksittäinen komponentti on 2d-koordinaatisto, jonka sisälle voidaan pii
 
 Toinen tärkeä komponentti on elementti jonka sisälle voidaan upottaa Latexin matematiikka-notaatiota. Komponentti hyödyntää MathJax-kirjastoa matemaattisten merkkien renderöintiin. Muita komponentteja ovat ainakin validoitava input sekä jonkinlaiset elementit monivalintatehtäviä sekä fill in the blank-tyylisiä tehtäviä varten.
 
+Komponentit toteutetaan AngularJS-kirjastolla, jolla voidaan mm. luoda omia HTML-tageja ja attribuutteja. Dokumentointi hoidetaan JSDoc-speksien mukaan. Palautettavaan versioon sisältyy luodut komponentit sekä muutamia tehtäväesimerkkejä joista ilmenee komponenttien käyttö.
+
 ## Aikataulu
 
 **21.2.** Suunnitelma
