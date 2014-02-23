@@ -2,7 +2,9 @@
   <textarea ng-model="parent.expression"></textarea>
 </div>
 
-<div style="width:800px;height:400px;" td-coordinates></div>
+<div ng-init="shapes = [{points:[[0,0], [0,1], [1,1], [1,0]], color:'red'}, {points:[[4,4],[4,8],[6,6]], color:'green'}]">
+    <div td-coordinates  zoom="10" shapes="shapes" class="coord-container"></div>
+</div>
 
 <span td-math="parent.expression"></span>
 <h1 td-math="parent.expression"></h1>

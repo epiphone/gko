@@ -1,6 +1,8 @@
 "use strict";
 
-/** App initialization and routing. */
+/**
+ * App initialization and routing.
+ */
 
 angular.module("app.services", []);
 angular.module("app.directives", []);

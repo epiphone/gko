@@ -1,13 +1,19 @@
+.coord-container {
+    height: 100%;
+}
+
 svg {
   font: 10px sans-serif;
   shape-rendering: crispEdges;
 }
 
-rect {
-  fill: #ddd;
+.axis line {
+  fill: none;
+  stroke: #ddd;
+  shape-rendering: crispEdges;
+  vector-effect: non-scaling-stroke;
 }
 
-.axis path, .axis line {
-  fill: none;
-  stroke: #fff;
+line.thick {
+    stroke: #494949;
 }
