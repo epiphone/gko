@@ -1,0 +1,10 @@
+INSTALL:
+1. Install NodeJS (run 'node -v' to check if already installed)
+2. Add 'npm' to path (comes with Node)
+3. Install Karma test runner (npm install karma -g)
+4. Install Jasmine plugin (npm install karma-jasmine -g)
+5. Install Karma chrome launcher (npm install karma-chrome-launcher -g)
+
+RUN:
+1. run /scripts/test.bat as an administrator
+2. Tests are automatically run when changes are made. Neat!

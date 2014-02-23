@@ -1,0 +1,9 @@
+komponentit:
+- input validaatiolla (tekstiä, numeroita)
+- textbox
+- monivalinta
+- latex-notaation renderöinti MathJax-kirjastolla
+- koordinaatisto ja sille piirrettävät kappaleet
+  - suorakulmio, ympyrä, jana, piste?
+- kuvat
+- submit-nappula

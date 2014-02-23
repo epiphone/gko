@@ -1,0 +1,101 @@
+﻿<Window x:Class="VT5.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="350" Width="525"
+        xmlns:local="clr-namespace:VT5" x:Name="ikkuna">
+    <Window.Resources>
+        <Style x:Key="CircleStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Background" Value="#FFD6D6EB" />
+            <Setter Property="FontFamily" Value="Verdana" />
+            <Setter Property="FontSize" Value="72" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid>
+                            <Ellipse  x:Name="ellipse" Fill="#FFEDFFFF" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" StrokeThickness="5" Stroke="#FFFAFF88">
+                            </Ellipse>
+                            <ContentPresenter x:Name="content" Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ellipse" Property="StrokeThickness" Value="1"/>
+                                <Setter TargetName="ellipse" Property="Stroke" Value="Black"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="ellipse" Property="Stroke" Value="Gray"/>
+                                <Setter TargetName="ellipse" Property="StrokeThickness" Value="10"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="FontWeight" Value="ExtraBold"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Foreground" Value="Red"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="0" Grid.Column="0" Content="1" />
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="0" Grid.Column="1" Content="2" />
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="0" Grid.Column="2" Content="3" />
+
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="1" Grid.Column="0" Content="4" />
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="1" Grid.Column="1" Content="5" />
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="1" Grid.Column="2" Content="6" />
+
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="2" Grid.Column="0" Content="7" />
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="2" Grid.Column="1" Content="8" />
+        <ToggleButton Style="{StaticResource CircleStyle}" Grid.Row="2" Grid.Column="2" Content="9" />
+
+        <ListBox Grid.Row="0" Grid.RowSpan="3" Grid.Column="3" ItemsSource="{Binding ElementName=ikkuna, Path=Henkilot}">
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type local:Henkilo}">
+                    <Border BorderBrush="#FF4F4F4F" BorderThickness="2">
+                        <StackPanel x:Name="panel">
+                            <TextBlock Text="{Binding Path=Etunimi}" />
+                            <TextBlock Text="{Binding Path=Sukunimi}" />
+                            <TextBlock Text="{Binding Path=Ika}" />
+                            <TextBlock Text="{Binding Path=Kansallisuus}" />
+                        </StackPanel>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Path=Kansallisuus}" Value="Skotlanti">
+                            <DataTrigger.Setters>
+                                <Setter TargetName="panel" Property="Background" Value="Green"/>
+                            </DataTrigger.Setters>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=Kansallisuus}" Value="Uusi-Seelanti">
+                            <DataTrigger.Setters>
+                                <Setter TargetName="panel" Property="Background" Value="Blue"/>
+                            </DataTrigger.Setters>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=Kansallisuus}" Value="Känädä">
+                            <DataTrigger.Setters>
+                                <Setter TargetName="panel" Property="Background" Value="Red"/>
+                            </DataTrigger.Setters>
+                        </DataTrigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Window>
