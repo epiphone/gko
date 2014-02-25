@@ -13,10 +13,10 @@ namespace VT3Controls
 {
     public partial class VerticalBar : UserControl
     {
-        Color color;
+        Color color = Color.Empty;
         public Color BarColor
         {
-            get { return color; }
+            get { return color.IsEmpty ? Color.White : color; }
             set { color = value; VerticalBar_Resize(this, null); }
         }
 
@@ -25,10 +25,16 @@ namespace VT3Controls
 
         public VerticalBar()
         {
+            blend = GetBlend();
             InitializeComponent();
-            blend = new Blend();
-            blend.Factors = new float[] { 0, 1, 0 };
-            blend.Positions = new float[] { 0, 0.5f, 1 };
+        }
+
+        private Blend GetBlend()
+        {
+            var newBlend = new Blend();
+            newBlend.Factors = new float[] { 0, 1, 0 };
+            newBlend.Positions = new float[] { 0, 0.5f, 1 };
+            return newBlend;
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -41,6 +47,7 @@ namespace VT3Controls
         {
             if (brush != null) brush.Dispose();
 
+            blend = blend == null ? GetBlend() : blend;
             brush = new System.Drawing.Drawing2D.LinearGradientBrush(new Point(0, 0),
                 new Point(ClientSize.Width, 0), BarColor, Color.White) { Blend = blend };
 
