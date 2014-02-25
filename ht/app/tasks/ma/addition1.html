@@ -2,18 +2,37 @@
   <textarea ng-model="parent.expression"></textarea>
 </div>
 
-<span ng-init="shapes1 = [{points:[[-1,0],[2,6]], stroke:'red'}, {points:[[5,3]], r:0.1, stroke:'steelblue'}, {points:[[0,0], [0,1], [1,1], [1,0]], stroke:'steelblue', strokeWidth:3}, {points:[[4,4],[4,8],[6,6]], stroke:'green'}]"></span>
-<span ng-init="shapes2 = [{points:[[-2,4],[3,1]], stroke:'blue'}, {points:[[0,1]], r:0.1, stroke:'green'}, {points:[[4,4],[4,8],[6,6]], stroke:'green'}, {points:[[5,1]], r:0.5, stroke:'steelblue'}]"></span>
-<span ng-init="shapes = shapes1"></span>
+<td-init>
+    minX = -2;
+    maxX = 10;
+    minY = -2;
+    maxY = 10;
+    bounds = [maxY, maxX, minY, minX].join(",");
+
+    cx = MathUtils.randRange(0, maxX);
+    cy = MathUtils.randRange(0, maxX);
+    circle = {points:[[cx, cy]], r:0.2};
+    shapes1 = [circle];
+</td-init>
+
+<td-init>
+    shapes2 = [
+        {points:[[-2,4],[3,1]], stroke:'blue'},
+        {points:[[0,1]], r:0.1, stroke:'green'},
+        {points:[[4,4],[4,8],[6,6]], stroke:'green'},
+        {points:[[5,1]], r:0.5, stroke:'steelblue'}
+    ];
+
+    shapes = shapes1;
+</td-init>
 
 <div class="row">
-    <div td-coords td-bounds="10,10,-2,-2" td-aspect="0.65" td-shapes="shapes" class="col-lg-6 coord-container"></div>
+    <div class="col-sm-6 col-xs-12 coord-container">
+        <td-coords td-bounds="{{bounds}}" td-aspect="1" td-shapes="shapes" />
+    </div>
 </div>
 
 <input type="button" ng-click="shapes = shapes === shapes1 ? shapes2 : shapes1" value="Vaihda aineistoa"/>
 
-
-
-
 <span td-math="parent.expression"></span>
-<h1 td-math="parent.expression"></h1>
+<span td-math="'10 + 4 = 2'"></span>

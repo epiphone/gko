@@ -9,8 +9,9 @@ angular.module("app.controllers")
  * Loads the task template specified in URL, handles common task functionality
  * such as answer checking and submitting.
  */
-.controller("TaskCtrl", function($scope, $routeParams, $templateCache, $http) {
+.controller("TaskCtrl", function($scope, $routeParams, $templateCache, $http, MathUtils) {
 
+    $scope.MathUtils = MathUtils;
     $scope.error = null;
     $scope.parent = {
         expression: "\\left(\\prod_{i=1}^{n+1} q(t_i | t_{i-2}, t_{i-1}) \\prod_{i=1}^{n}e(w_i | t_i) \\right)"
@@ -48,4 +49,18 @@ angular.module("app.controllers")
                 $scope.error = "Tehtävää ei löytynyt.";
             });
     }
+
+    /**
+     * Check user's answer for given task.
+     */
+    $scope.checkAnswer = function(userAnswer, correctAnswer) {
+        var match = false;
+        if (correctAnswer instanceof RegExp) {
+            match = correctAnswer.test(userAnswer);
+        } else {
+            match = userAnswer === correctAnswer;
+        }
+
+        console.log(match ? "Oikea vastaus" : "Väärä vastaus");
+    };
 });
