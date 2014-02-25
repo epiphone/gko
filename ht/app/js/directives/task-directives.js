@@ -36,9 +36,9 @@ angular.module("app.directives")
  * A zoomable & scrollable 2D coordinate system.
  *
  * TODO WIP
- * <div td-coordinates></div>
+ * <div td-coords></div>
  */
-.directive("tdCoordinates", function($log) {
+.directive("tdCoords", function($log, $window) {
     return {
         restrict: "A",
 
@@ -75,7 +75,7 @@ angular.module("app.directives")
                     minY = bounds[2];
                     minX = bounds[3];
                 } else {
-                    $log.error("tdBounds attribute in tdCoordinates directive is invalid");
+                    $log.error("tdBounds attribute in coordinates directive is invalid");
                 }
             }
 
@@ -118,12 +118,6 @@ angular.module("app.directives")
                 .scaleExtent([1, zoomExtent])
                 .on("zoom", zoomed);
 
-            var drag = d3.behavior.drag()
-                .origin(function(d) { return d; })
-                .on("dragstart", dragStarted)
-                .on("drag", dragged)
-                .on("dragend", dragEnded);
-
             var svg = d3.select(elem[0]).append("svg")
                 .attr("width", width + margin.left + margin.right)
                 .attr("height", height + margin.top + margin.bottom)
@@ -131,6 +125,12 @@ angular.module("app.directives")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
                 .call(zoomIfEnabled);
 
+            // A rect element to catch pointer events
+            var rect = svg.append("rect")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("fill", "none")
+                .style("pointer-events", "all");
 
             var container = svg.append("g");
 
@@ -188,53 +188,42 @@ angular.module("app.directives")
                 .style("display", function(d) { if (!d) return "none"; })
                 .text(Object);
 
-            scope.shapes.forEach(function(shape) {
-                var xSum = 0, ySum = 0, ptsCount = 0;
-                shape.points.forEach(function(point) {
-                    xSum += point[0];
-                    ySum += point[1];
-                    ptsCount++;
-                });
-                shape.x = Math.round(x(xSum/ptsCount));
-                shape.y = Math.round(y(ySum/ptsCount));
-            });
-            console.log(scope.shapes);
 
             // Shapes
-            var shapes = container.selectAll(".shape")
-                .data(scope.shapes)
-                .enter().append("g")
-                .attr("class", "shape");
+            // var shapes = container.selectAll(".shape")
+            //     .data(scope.shapes)
+            //     .enter().append("g")
+            //     .attr("class", "shape");
 
-            shapes // Polygons
-                .filter(function(d) { return d.points.length > 2; })
-                .append("polygon")
-                .attr("points", function(d) {
-                    return d.points.map(function(ps) { return [x(ps[0]), y(ps[1])]; });
-                })
-                .call(drag);
+            // shapes // Polygons
+            //     .filter(function(d) { return d.points.length > 2; })
+            //     .append("polygon");
+            //     // .attr("points", function(d) {
+            //     //     return d.points.map(function(ps) { return [x(ps[0]), y(ps[1])]; });
+            //     // });
 
-            shapes // Lines
-                .filter(function(d) { return d.points.length == 2; })
-                .append("line")
-                .attr("x1", function(d) { return x(d.points[0][0]); })
-                .attr("y1", function(d) { return y(d.points[0][1]); })
-                .attr("x2", function(d) { return x(d.points[1][0]); })
-                .attr("y2", function(d) { return y(d.points[1][1]); })
-                .call(drag);
 
-            shapes // Circles
-                .filter(function(d) { return d.points.length == 1; })
-                .append("circle")
-                .attr("cx", function(d) { return x(d.points[0][0]); })
-                .attr("cy", function(d) { return y(d.points[0][1]); })
-                .attr("r", function(d) { return d.r || 3; })
-                .call(drag);
+            // shapes // Lines
+            //     .filter(function(d) { return d.points.length == 2; })
+            //     .append("line");
+            //     // .attr("x1", function(d) { return x(d.points[0][0]); })
+            //     // .attr("y1", function(d) { return y(d.points[0][1]); })
+            //     // .attr("x2", function(d) { return x(d.points[1][0]); })
+            //     // .attr("y2", function(d) { return y(d.points[1][1]); });
 
-            shapes // Common shape attributes
-                .attr("fill", function(d) { return d.fill || "none"; })
-                .attr("stroke", function(d) { return d.stroke || "black"; })
-                .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
+
+            // shapes // Circles
+            //     .filter(function(d) { return d.points.length == 1; })
+            //     .append("circle")
+            //     // .attr("cx", function(d) { return x(d.points[0][0]); })
+            //     // .attr("cy", function(d) { return y(d.points[0][1]); })
+            //     .attr("r", function(d) { return spacing*(d.r || 0.1); });
+
+
+            // shapes // Common shape attributes
+            //     .attr("fill", function(d) { return d.fill || "none"; })
+            //     .attr("stroke", function(d) { return d.stroke || "black"; })
+            //     .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
 
 
             function zoomIfEnabled(selection) {
@@ -247,37 +236,41 @@ angular.module("app.directives")
                     ")scale(" + d3.event.scale + ")");
             }
 
-            function dragStarted(d) {
-                d3.event.sourceEvent.stopPropagation();
-                d3.select(this).classed("dragging", true);
-            }
-
-            function dragged(d) {
-                d3.select(this).attr("cx", d.x = d3.event.x).attr("cy", d.y = d3.event.y);
-                console.log(d3.event.x);
-            }
-
-            function dragEnded(d) {
-                d3.select(this).classed("dragging", false);
-            }
-
             // Watch for window resize and changes in bound data:
-            // d3.select(window).on("resize", update);
+            var resizeTimer;
+            angular.element($window).bind("resize", function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function(){
+                    update(scope.shapes);
+                }, 100);
+            });
 
-            // scope.$watch("shapes", function(newShapes) {
-            //     if (newShapes) update(newShapes);
-            // }, true);
+            scope.$watch("shapes", function(newShapes) {
+                if (newShapes) update(newShapes, true);
+            }, true);
+
+            update(scope.shapes, true);
 
             /**
              * Redraws the coordinate system.
-             * @param  {[object]} Geometric shapes to draw.
+             * @param  {[object]} shapes Geometric shapes to draw.
+             * @param  {=bool}    init   Is coordinate system being initialized.
              */
-            function update(shapes) {
-                width = elem.width() - margin.left - margin.right;
+            function update(shapes, init) {
+                var newWidth = elem.width() - margin.left - margin.right;
+                if (newWidth === width && !init) return;
+                console.log(shapes[0]);
+
+                width = newWidth;
                 height = Math.round(width * aspect) - margin.top - margin.bottom;
 
-                x.domain([-width / 2, width / 2]).range([0, width]);
-                y.domain([-height / 2, height / 2]).range([height, 0]);
+                var spacing = Math.round(Math.min(
+                    width / Math.abs(maxX - minX),
+                    height / Math.abs(maxY - minY)
+                ));
+
+                x.range([0, spacing]);
+                y.range([height, height - spacing]);
 
                 svg = d3.select(elem[0]).select("svg");
                 svg
@@ -289,30 +282,80 @@ angular.module("app.directives")
                     .attr("width", width)
                     .attr("height", height);
 
+                var newShapes = container.selectAll(".shape")
+                    .data(scope.shapes);
 
-                // Shapes
-                var drawnShapes = container.selectAll(".shape")
-                    .data(shapes);
 
-                drawnShapes.attr("points", function(d) {
-                    return d.points.map(function(ps) {
-                        return [x(ps[0]), y(ps[1])];
-                    });
-                });
+                // Append new shapes
+                var shapeEnter = newShapes.enter().append("g")
+                    .attr("class", "shape");
 
-                drawnShapes.enter().append("polygon")
+                 shapeEnter // Append polygons
+                    .filter(function(d) { return d.points.length > 2; })
+                    .append("polygon");
+
+                shapeEnter // Append lines
+                    .filter(function(d) { return d.points.length == 2; })
+                    .append("line");
+
+                shapeEnter // Append circles
+                    .filter(function(d) { return d.points.length == 1; })
+                    .append("circle");
+
+                shapeEnter // Common shape attributes
+                    .attr("fill", function(d) { return d.fill || "none"; })
+                    .attr("stroke", function(d) { return d.stroke || "black"; })
+                    .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
+
+
+                // Update existing shapes
+                var shapeUpdate = newShapes.transition().duration(550);
+
+                shapeUpdate.selectAll("polygon") // Update polygons
                     .attr("points", function(d) {
-                        return d.points.map(function(ps) {
-                            return [x(ps[0]), y(ps[1])];
-                        });
-                    })
-                    .attr("fill", function(d) {
-                        return d.color || "steelblue";
-                    })
-                    .attr("stroke", "black")
-                    .attr("stroke-width", 2);
+                        return d.points.map(function(ps) { return [x(ps[0]), y(ps[1])]; });
+                    });
 
-                drawnShapes.exit().remove();
+                shapeUpdate.selectAll("line") // Update lines
+                    .filter(function(d) { return d.points.length == 2; })
+                    .attr("x1", function(d) { return x(d.points[0][0]); })
+                    .attr("y1", function(d) { return y(d.points[0][1]); })
+                    .attr("x2", function(d) { return x(d.points[1][0]); })
+                    .attr("y2", function(d) { return y(d.points[1][1]); });
+
+                shapeUpdate.selectAll("circle") // Update circles
+                    .filter(function(d) { return d.points.length === 1; })
+                    .attr("cx", function(d) { return x(d.points[0][0]); })
+                    .attr("cy", function(d) { return y(d.points[0][1]); })
+                    .attr("r", function(d) { return spacing*(d.r || 0.1); });
+
+
+                // Animate axis rescale
+                container.selectAll(".x.axis line")
+                    .transition().duration(550)
+                    .attr("x1", x)
+                    .attr("y1", y(minY))
+                    .attr("x2", x)
+                    .attr("y2", y(maxY));
+
+                container.selectAll(".y.axis line")
+                    .transition().duration(550)
+                    .attr("x1", x(minX))
+                    .attr("y1", y)
+                    .attr("x2", x(maxX))
+                    .attr("y2", y);
+
+                container.selectAll(".label.x")
+                    .transition().duration(550)
+                    .attr("x", x)
+                    .attr("y", y(0));
+
+                container.selectAll(".label.y")
+                    .transition().duration(550)
+                    .attr("x", x(0))
+                    .attr("y", y);
+
+                newShapes.exit().remove();
             }
         }
     };

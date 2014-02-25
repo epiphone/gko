@@ -2,15 +2,17 @@
   <textarea ng-model="parent.expression"></textarea>
 </div>
 
-<span ng-init="shapes = [{points:[[-1,0],[2,6]], stroke:'red'}, {points:[[5,3]], r:5, stroke:'steelblue'}, {points:[[0,0], [0,1], [1,1], [1,0]], stroke:'steelblue', strokeWidth:3}, {points:[[4,4],[4,8],[6,6]], stroke:'green'}]"></span>
+<span ng-init="shapes1 = [{points:[[-1,0],[2,6]], stroke:'red'}, {points:[[5,3]], r:0.1, stroke:'steelblue'}, {points:[[0,0], [0,1], [1,1], [1,0]], stroke:'steelblue', strokeWidth:3}, {points:[[4,4],[4,8],[6,6]], stroke:'green'}]"></span>
+<span ng-init="shapes2 = [{points:[[-1,4],[3,1]], stroke:'blue'}, {points:[[5,3]], r:0.1, stroke:'steelblue'}, {points:[[0,0], [0,1], [1,1], [1,0]], stroke:'steelblue', strokeWidth:3}, {points:[[4,4],[4,8],[6,6]], stroke:'green'}]"></span>
+<span ng-init="shapes = shapes1"></span>
 
 <div class="row">
-    <div td-coordinates td-bounds="10,10,-2,-2" td-aspect="1" td-shapes="shapes" class="col-lg-6 coord-container"></div>
+    <div td-coords td-bounds="10,10,-2,-2" td-aspect="0.65" td-shapes="shapes" class="col-lg-6 coord-container"></div>
 </div>
 
-<div class="row">
-    <div td-coordinates td-zoom="10" td-aspect="1" td-shapes="shapes" class="col-lg-6 coord-container"></div>
-</div>
+<input type="button" ng-click="shapes = shapes === shapes1 ? shapes2 : shapes1" value="Vaihda aineistoa"/>
+
+
 
 
 <span td-math="parent.expression"></span>
