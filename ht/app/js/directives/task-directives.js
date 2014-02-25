@@ -189,43 +189,6 @@ angular.module("app.directives")
                 .text(Object);
 
 
-            // Shapes
-            // var shapes = container.selectAll(".shape")
-            //     .data(scope.shapes)
-            //     .enter().append("g")
-            //     .attr("class", "shape");
-
-            // shapes // Polygons
-            //     .filter(function(d) { return d.points.length > 2; })
-            //     .append("polygon");
-            //     // .attr("points", function(d) {
-            //     //     return d.points.map(function(ps) { return [x(ps[0]), y(ps[1])]; });
-            //     // });
-
-
-            // shapes // Lines
-            //     .filter(function(d) { return d.points.length == 2; })
-            //     .append("line");
-            //     // .attr("x1", function(d) { return x(d.points[0][0]); })
-            //     // .attr("y1", function(d) { return y(d.points[0][1]); })
-            //     // .attr("x2", function(d) { return x(d.points[1][0]); })
-            //     // .attr("y2", function(d) { return y(d.points[1][1]); });
-
-
-            // shapes // Circles
-            //     .filter(function(d) { return d.points.length == 1; })
-            //     .append("circle")
-            //     // .attr("cx", function(d) { return x(d.points[0][0]); })
-            //     // .attr("cy", function(d) { return y(d.points[0][1]); })
-            //     .attr("r", function(d) { return spacing*(d.r || 0.1); });
-
-
-            // shapes // Common shape attributes
-            //     .attr("fill", function(d) { return d.fill || "none"; })
-            //     .attr("stroke", function(d) { return d.stroke || "black"; })
-            //     .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
-
-
             function zoomIfEnabled(selection) {
                 if (angular.isFunction(zoom)) zoom(selection);
             }
@@ -251,10 +214,11 @@ angular.module("app.directives")
 
             update(scope.shapes, true);
 
+
             /**
              * Redraws the coordinate system.
              * @param  {[object]} shapes Geometric shapes to draw.
-             * @param  {=bool}    init   Is coordinate system being initialized.
+             * @param  {=boolean} init   Is coordinate system being initialized.
              */
             function update(shapes, init) {
                 var newWidth = elem.width() - margin.left - margin.right;
@@ -269,6 +233,8 @@ angular.module("app.directives")
                     height / Math.abs(maxY - minY)
                 ));
 
+                var transitionDuration = attrs.tdDuration || 550;
+
                 x.range([0, spacing]);
                 y.range([height, height - spacing]);
 
@@ -282,52 +248,56 @@ angular.module("app.directives")
                     .attr("width", width)
                     .attr("height", height);
 
-                var newShapes = container.selectAll(".shape")
-                    .data(scope.shapes);
 
 
-                // Append new shapes
-                var shapeEnter = newShapes.enter().append("g")
-                    .attr("class", "shape");
+                // Enter, update and remove polygons
+                var polygons = container.selectAll("polygon.shape")
+                    .data(shapes.filter(function(s) { return s.points.length > 2; }));
 
-                 shapeEnter // Append polygons
-                    .filter(function(d) { return d.points.length > 2; })
-                    .append("polygon");
+                polygons.enter().append("polygon").attr("class", "shape");
 
-                shapeEnter // Append lines
-                    .filter(function(d) { return d.points.length == 2; })
-                    .append("line");
-
-                shapeEnter // Append circles
-                    .filter(function(d) { return d.points.length == 1; })
-                    .append("circle");
-
-                shapeEnter // Common shape attributes
-                    .attr("fill", function(d) { return d.fill || "none"; })
-                    .attr("stroke", function(d) { return d.stroke || "black"; })
-                    .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
-
-
-                // Update existing shapes
-                var shapeUpdate = newShapes.transition().duration(550);
-
-                shapeUpdate.selectAll("polygon") // Update polygons
+                polygons.transition().duration(transitionDuration)
                     .attr("points", function(d) {
                         return d.points.map(function(ps) { return [x(ps[0]), y(ps[1])]; });
                     });
 
-                shapeUpdate.selectAll("line") // Update lines
-                    .filter(function(d) { return d.points.length == 2; })
-                    .attr("x1", function(d) { return x(d.points[0][0]); })
+                polygons.exit().remove();
+
+
+                // Enter, update and remove circles
+                var circles = container.selectAll("circle.shape")
+                    .data(shapes.filter(function(s) { return s.points.length == 1; }));
+
+                circles.enter().append("circle").attr("class", "shape");
+
+                circles.transition().duration(transitionDuration)
+                    .attr("cx", function(d) { return x(d.points[0][0]); })
+                    .attr("cy", function(d) { return y(d.points[0][1]); })
+                    .attr("r", function(d) { return spacing*(d.r || 0.1); });
+
+                circles.exit().remove();
+
+
+                // Enter, update and remove lines
+                var lines = container.selectAll("line.shape")
+                    .data(shapes.filter(function(s) { return s.points.length == 2; }));
+
+                lines.enter().append("line").attr("class", "shape");
+
+                lines.transition().duration(transitionDuration)
+                    .attr("x1", function(d) { console.log(d.points[0]);return x(d.points[0][0]); })
                     .attr("y1", function(d) { return y(d.points[0][1]); })
                     .attr("x2", function(d) { return x(d.points[1][0]); })
                     .attr("y2", function(d) { return y(d.points[1][1]); });
 
-                shapeUpdate.selectAll("circle") // Update circles
-                    .filter(function(d) { return d.points.length === 1; })
-                    .attr("cx", function(d) { return x(d.points[0][0]); })
-                    .attr("cy", function(d) { return y(d.points[0][1]); })
-                    .attr("r", function(d) { return spacing*(d.r || 0.1); });
+                lines.exit().remove();
+
+
+                // Update all shapes (common attributes)
+                container.selectAll(".shape")
+                    .attr("fill", function(d) { return d.fill || "none"; })
+                    .attr("stroke", function(d) { return d.stroke || "black"; })
+                    .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
 
 
                 // Animate axis rescale
@@ -354,8 +324,6 @@ angular.module("app.directives")
                     .transition().duration(550)
                     .attr("x", x(0))
                     .attr("y", y);
-
-                newShapes.exit().remove();
             }
         }
     };

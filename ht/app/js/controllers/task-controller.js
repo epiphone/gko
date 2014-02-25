@@ -48,8 +48,4 @@ angular.module("app.controllers")
                 $scope.error = "Tehtävää ei löytynyt.";
             });
     }
-
-    $scope.test = function() {
-        console.log($scope.parent);
-    };
 });
