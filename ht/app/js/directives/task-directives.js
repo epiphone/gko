@@ -35,15 +35,40 @@ angular.module("app.directives")
  * Initialize scope variables in templates.
  *
  * Usage:
- * <td-init>b = 4 + someExistingScopeVariable</td-init>
+ * <span td-init>
+ *     a = 10;
+ *     b = 4 + a;
+ * </td-init>
  */
 .directive("tdInit", function() {
     return {
-        restrict: "E",
+        restrict: "A",
 
         link: function(scope, elem) {
-            elem.hide();
+            elem.addClass("hidden");
             scope.$eval(elem.text());
+        }
+    };
+})
+
+/**
+ * Reload child elements when attribute value changes.
+ *
+ * Usage:
+ * <div td-reload-on="{changingVariable}"> ... </div>
+ */
+.directive("tdReloadOn", function($compile) {
+    return {
+        restrict: "A",
+
+        link: function(scope, elem, attrs) {
+            scope.$watch(attrs.tdReloadOn, function() {
+                var html = elem.html();
+                elem.empty();
+
+                var el = $compile(html)(scope);
+                elem.html(el);
+            }, true);
         }
     };
 });

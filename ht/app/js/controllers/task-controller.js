@@ -9,13 +9,10 @@ angular.module("app.controllers")
  * Loads the task template specified in URL, handles common task functionality
  * such as answer checking and submitting.
  */
-.controller("TaskCtrl", function($scope, $routeParams, $templateCache, $http, MathUtils) {
+.controller("TaskCtrl", function($scope, $routeParams, $templateCache, $http, $location, MathUtils) {
 
     $scope.MathUtils = MathUtils;
     $scope.error = null;
-    $scope.parent = {
-        expression: "\\left(\\prod_{i=1}^{n+1} q(t_i | t_{i-2}, t_{i-1}) \\prod_{i=1}^{n}e(w_i | t_i) \\right)"
-    };
 
     getTemplate("tasks/" + $routeParams.taskTemplatePath);
 
@@ -51,16 +48,27 @@ angular.module("app.controllers")
     }
 
     /**
-     * Check user's answer for given task.
+     * Compare given answer to the solution, return 1 if correct.
+     *
+     * @param answer   User's answer.
+     * @param solution The correct answer.
+     * @returns 1 if correct, otherwise 0.
      */
-    $scope.checkAnswer = function(userAnswer, correctAnswer) {
+    $scope.check = function(answer, solution) {
         var match = false;
-        if (correctAnswer instanceof RegExp) {
-            match = correctAnswer.test(userAnswer);
+        if (solution instanceof RegExp) {
+            match = solution.test(answer);
+        } else if (!isNaN(answer) && !isNaN(solution)) {
+            match = Math.abs(answer - solution) <= 0.001;
         } else {
-            match = userAnswer === correctAnswer;
+            match = answer === solution;
         }
 
-        console.log(match ? "Oikea vastaus" : "Väärä vastaus");
+        return match ? 1 : 0;
+    };
+
+    /** Finish current task. */
+    $scope.finish = function() {
+        $location.path("");
     };
 });

@@ -28,10 +28,10 @@ angular.module("app.services")
 
 
     /**
-     * Generate a random integer in range [0, count[.
+     * Generate a random integer in range [0, max[.
      * @param  {number}  max   Exclusive upper bound.
      * @param  {number=} count If set, return a list of random values.
-     * @return {(number|[number])} A single or multiple random ints.
+     * @return {number|[number]} A single or multiple random ints.
      */
     MathUtils.rand = function(max, count) {
         if (count && count > 0) {
