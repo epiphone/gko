@@ -68,5 +68,22 @@ angular.module("app.services")
         return res;
     };
 
+    /**
+     * Check whether arrays equal.
+     * @param  arr1
+     * @param  arr2
+     * @return {boolean}
+     */
+    MathUtils.arraysEqual = function(arr1, arr2) {
+        if (arr1.length !== arr2.length)
+            return false;
+        for (var i = 0; i < arr1.length; i++) {
+            if (arr1[i] !== arr2[i])
+                return false;
+        }
+
+        return true;
+    };
+
     return MathUtils;
 });

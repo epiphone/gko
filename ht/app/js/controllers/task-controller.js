@@ -55,15 +55,19 @@ angular.module("app.controllers")
      * @returns 1 if correct, otherwise 0.
      */
     $scope.check = function(answer, solution) {
+        console.log(answer, solution);
         var match = false;
         if (solution instanceof RegExp) {
             match = solution.test(answer);
         } else if (!isNaN(answer) && !isNaN(solution)) {
             match = Math.abs(answer - solution) <= 0.001;
+        } else if (answer.length !== undefined && solution.length !== undefined) {
+            match = MathUtils.arraysEqual(answer, solution);
         } else {
             match = answer === solution;
         }
 
+        console.log("match =", match);
         return match ? 1 : 0;
     };
 

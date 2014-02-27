@@ -1,31 +1,35 @@
 
 <h2>Mitkä ovat pisteen x-ja y-koordinaatit? <small ng-show="step <= maxStep">{{step}}/{{maxStep}}</small></h2>
 
-<td-init>
+<span td-init>
     step = 1;
     maxStep = 5;
-</td-init>
+</span>
 
-<div ng-show="step <= maxStep" td-reload-on="step">
-    <td-init>
-    <span>
-        a = MathUtils.rand(10) + MathUtils.randRange(1, 10) / 10;
-        b = MathUtils.rand(10) + MathUtils.randRange(1, 10) / 10;
-        solution = a + b;
-        question = [a, " + ", b, " = ?"].join("");
+<div td-reload-on="step">
+    <span td-init>
+        x = MathUtils.rand(10);
+        y = MathUtils.rand(10);
+        circle = {points:[[x, y]], r:0.2};
+        shapes = [circle];
+        solution = [x, y];
     </span>
-    </td-init>
 </div>
 
 <div class="row">
+
     <div class="col-sm-9 question">
-        <h1 td-math="question"></h1>
+        <div class="coord-container">
+            <td-coords td-bounds="12,12,-2,-2" td-aspect="1" td-shapes="shapes" />
+        </div>
     </div>
+
     <div class="col-sm-3 answer">
         <div ng-show="step <= maxStep">
             <form>
-                <input ng-model="answer" type="number" step="0.1" placeholder="Syötä vastaus" class="form-control" novalidate/>
-                <button ng-click="step = step + submit(answer, solution)" type="submit" class="btn btn-lg btn-success">Vastaa</button>
+                <input ng-model="ansX" type="number" placeholder="x" class="form-control" novalidate/>
+                <input ng-model="ansY" type="number" placeholder="y" class="form-control" novalidate/>
+                <button ng-click="step = step + check([ansX, ansY], solution)" type="submit" class="btn btn-lg btn-success">Vastaa</button>
             </form>
         </div>
         <button ng-show="step > maxStep" ng-click="finish()" class="btn btn-lg btn-success">Valmis!</button>
