@@ -55,7 +55,6 @@ angular.module("app.controllers")
      * @returns 1 if correct, otherwise 0.
      */
     $scope.check = function(answer, solution) {
-        console.log(answer, solution);
         var match = false;
         if (solution instanceof RegExp) {
             match = solution.test(answer);
@@ -67,6 +66,7 @@ angular.module("app.controllers")
             match = answer === solution;
         }
 
+        console.log(answer, solution);
         console.log("match =", match);
         return match ? 1 : 0;
     };
@@ -74,5 +74,6 @@ angular.module("app.controllers")
     /** Finish current task. */
     $scope.finish = function() {
         $location.path("");
+        // TODO
     };
 });

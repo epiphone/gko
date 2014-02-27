@@ -222,12 +222,11 @@ angular.module("app.directives")
                     .attr("height", height);
 
 
-
                 // Enter, update and remove polygons
                 var polygons = container.selectAll("polygon.shape")
                     .data(shapes.filter(function(s) { return s.points.length > 2; }));
 
-                polygons.enter().append("polygon").attr("class", "shape");
+                var polygonsEnter = polygons.enter().append("polygon").attr("class", "shape");
 
                 polygons.transition().duration(transitionDuration)
                     .attr("points", function(d) {
@@ -241,7 +240,7 @@ angular.module("app.directives")
                 var circles = container.selectAll("circle.shape")
                     .data(shapes.filter(function(s) { return s.points.length == 1; }));
 
-                circles.enter().append("circle").attr("class", "shape");
+                var circlesEnter = circles.enter().append("circle").attr("class", "shape");
 
                 circles.transition().duration(transitionDuration)
                     .attr("cx", function(d) { return x(d.points[0][0]); })
@@ -255,7 +254,7 @@ angular.module("app.directives")
                 var lines = container.selectAll("line.shape")
                     .data(shapes.filter(function(s) { return s.points.length == 2; }));
 
-                lines.enter().append("line").attr("class", "shape");
+                var linesEnter = lines.enter().append("line").attr("class", "shape");
 
                 lines.transition().duration(transitionDuration)
                     .attr("x1", function(d) { return x(d.points[0][0]); })
@@ -266,35 +265,46 @@ angular.module("app.directives")
                 lines.exit().remove();
 
 
+                // Add click events to all new shapes
+                // var newShapes = [polygonsEnter, circlesEnter, linesEnter];
+                // newShapes.forEach(function(newShape) {
+                //     newShape.on("click", function(d) {
+                //         d3.select(this)
+                //             .attr("opacity", 0)
+                //             .transition().duration(500)
+                //             .attr("opacity", 1);
+                //     });
+                // });
+
                 // Update all shapes (common attributes)
                 container.selectAll(".shape")
-                    .attr("fill", function(d) { return d.fill || "none"; })
+                    .attr("fill", function(d) { return d.fill || "transparent"; })
                     .attr("stroke", function(d) { return d.stroke || "steelblue"; })
                     .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
 
 
                 // Animate axis rescale
                 container.selectAll(".x.axis line")
-                    .transition().duration(550)
+                    .transition().duration(transitionDuration)
                     .attr("x1", x)
                     .attr("y1", y(minY))
                     .attr("x2", x)
                     .attr("y2", y(maxY));
 
                 container.selectAll(".y.axis line")
-                    .transition().duration(550)
+                    .transition().duration(transitionDuration)
                     .attr("x1", x(minX))
                     .attr("y1", y)
                     .attr("x2", x(maxX))
                     .attr("y2", y);
 
                 container.selectAll(".label.x")
-                    .transition().duration(550)
+                    .transition().duration(transitionDuration)
                     .attr("x", x)
                     .attr("y", y(0));
 
                 container.selectAll(".label.y")
-                    .transition().duration(550)
+                    .transition().duration(transitionDuration)
                     .attr("x", x(0))
                     .attr("y", y);
             }
