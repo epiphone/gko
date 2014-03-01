@@ -3,15 +3,28 @@
 "use strict";
 
 
-
 var Coords = React.createClass({
 
-  getSVG: function() {
-    return d3.select(this.getDOMNode()).select("svg>g");
+  handleResize: function() {
+    var parent = $(this.getDOMNode().parentNode);
+    this.setState({width: parent.width()});
+  },
+
+  getInitialState: function() {
+    return {width: 0};
+  },
+
+  componentDidMount: function() {
+    window.addEventListener("resize", this.handleResize);
+    this.handleResize();
+  },
+
+  componentWillUnmount: function() {
+    window.removeEventListener("resize", this.handleResize);
   },
 
   render: function() {
-
+    /* jshint ignore:start */
     var margin = {
       top: 10,
       right: 10,
@@ -19,10 +32,13 @@ var Coords = React.createClass({
       left: 10
     };
 
+    var width = this.state.width ? this.state.width - margin.left - margin.right : 0;
+    var height = Math.round(width * this.props.aspect) - margin.top - margin.bottom;
+
     var bounds = this.props.bounds;
     var spacing = Math.round(Math.min(
-      this.props.width / Math.abs(bounds.maxX - bounds.minX),
-      this.props.height / Math.abs(bounds.maxY - bounds.minY)
+      width / Math.abs(bounds.maxX - bounds.minX),
+      height / Math.abs(bounds.maxY - bounds.minY)
     ));
 
     var x = d3.scale.linear()
@@ -37,12 +53,9 @@ var Coords = React.createClass({
     var fullHeight = height + margin.top + margin.bottom;
     var transform = "translate(" + margin.left + "," + margin.top + ")";
 
-    /* jshint ignore:start */
-    var shapes = this.props.shapes.map(function(shape) {
-        return (
-          <Circle x={x} y={y} data={[shape]} spacing={spacing} getSVG={this.getSVG}/>
-        );
-    }.bind(this));
+    var shapes = !this.state.width ? null : (
+      <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} />
+    );
 
     return (
       <div className="coords">
@@ -58,63 +71,165 @@ var Coords = React.createClass({
 });
 
 
-var Circle = React.createClass({
+/** Various geometric shapes to be drawn on the coordinate system. */
+var Shapes = React.createClass({
+  /** Redraw the circle. */
+  update: function(props) {
+    var container = d3.select(this.getDOMNode());
 
-  update: function() {
-    var svg = this.props.getSVG();
-    var props = this.props;
-    var circle = svg.selectAll("circle.shape")
-      .data(this.props.data);
+    var transitionDuration = props.transitionDuration || 550;
 
-    circle.enter().append("circle").attr("class", "shape");
+    var polygons = container.selectAll("polygon.shape")
+      .data(props.data.filter(function(s) { return s.points.length > 2; }));
 
-    circle.transition().duration(550)
+    polygons.enter().append("polygon").attr("class", "shape");
+
+    polygons.transition().duration(transitionDuration)
+      .attr("points", function(d) {
+        return d.points.map(function(ps) {
+          return [props.x(ps[0]), props.y(ps[1])];
+        });
+      });
+
+    polygons.exit().remove();
+
+
+    // Enter, update and remove circles
+    var circles = container.selectAll("circle.shape")
+      .data(props.data.filter(function(s) { return s.points.length == 1; }));
+
+    circles.enter().append("circle").attr("class", "shape");
+
+    circles.transition().duration(transitionDuration)
       .attr("cx", function(d) { return props.x(d.points[0][0]); })
       .attr("cy", function(d) { return props.y(d.points[0][1]); })
-      .attr("r", function(d) { return props.spacing * (d.r || 0.2); })
-      .attr("stroke", function(d) { return d.stroke || "steelblue"; })
+      .attr("r", function(d) { return props.spacing * (d.r || 0.2); });
+
+    circles.exit().remove();
+
+
+    // Enter, update and remove lines
+    var lines = container.selectAll("line.shape")
+      .data(props.data.filter(function(s) { return s.points.length == 2; }));
+
+    lines.enter().append("line").attr("class", "shape");
+
+    lines.transition().duration(transitionDuration)
+      .attr("x1", function(d) { return props.x(d.points[0][0]); })
+      .attr("y1", function(d) { return props.y(d.points[0][1]); })
+      .attr("x2", function(d) { return props.x(d.points[1][0]); })
+      .attr("y2", function(d) { return props.y(d.points[1][1]); });
+
+    lines.exit().remove();
+
+
+    // Update all shapes (common attributes)
+    container.selectAll(".shape")
       .attr("fill", function(d) { return d.fill || "transparent"; })
+      .attr("stroke", function(d) { return d.stroke || "steelblue"; })
       .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
-
-    circle.exit().remove();
   },
 
-  componentDidMount: function(nextProps) {
-    this.update();
+  componentDidMount: function() {
+    this.update(this.props);
   },
 
-  shouldComponentUpdate: function(nextProps, nextState) {
-    this.update();
+  shouldComponentUpdate: function(nextProps) {
+    this.update(nextProps);
     return false;
   },
 
   render: function() {
-    var cx = this.props.x(this.props.cx);
-    var cy = this.props.y(this.props.cy);
-    var stroke = this.props.stroke || "steelblue";
-    var fill = this.props.fill || "transparent";
-    var strokeWidth = this.props.strokeWidth || 2;
-
     /* jshint ignore:start */
-    // <circle stroke={stroke} fill={fill} strokeWidth={strokeWidth} r={this.props.r} cx={cx} cy={cy} />
-    return <circle/>;
+    return <g/>;
     /* jshint ignore:end */
   }
-
 });
 
 
-var shapes = [{points: [[3,4]], r:0.2, stroke:"red"}];
-var width = $("#content").width();
-var aspect = 1;
-var height = width * aspect;
-var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
+
+/** Generates modern art. */
+var ModernArtGenerator = React.createClass({
+
+  changeShapes: function() {
+    function randomPoint() {
+      var x = Math.floor(Math.random() * 10);
+      var y = Math.floor(Math.random() * 10);
+      return [x, y];
+    }
+
+    function randomColor() {
+      var colors = "#1f77b4 #aec7e8 #ff7f0e #ffbb78 #2ca02c #98df8a #d62728 #ff9896 #9467bd #c5b0d5 #8c564b #c49c94 #e377c2 #f7b6d2 #7f7f7f #c7c7c7 #bcbd22 #dbdb8d #17becf #9edae5".split(" ");
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    var shapesN = Math.ceil(Math.random() * this.props.shapesN);
+    var shapes = [];
+
+    for (var i = 0; i < shapesN; i++) {
+      var pointsN = Math.ceil(Math.random() * this.props.pointsN);
+      shapes.push({points: [], stroke: randomColor()});
+      for (var j = 0; j < pointsN; j++) {
+        shapes[i].points.push(randomPoint());
+      }
+
+      if (shapes[i].points.length === 1)
+        shapes[i].r = Math.random();
+    }
+
+    this.setState({shapes: shapes});
+  },
+
+  componentDidMount: function() {
+    setInterval(this.changeShapes, 1000);
+  },
+
+  getInitialState: function() {
+    return {shapes: []};
+  },
+
+  render: function() {
+    /* jshint ignore:start */
+    var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
+    var aspect = 1;
+
+    return (
+      <Coords shapes={this.state.shapes} bounds={bounds} aspect={aspect} />
+    );
+    /* jshint ignore:end */
+  }
+});
+
+
+var Application = React.createClass({
+
+  getInitialState: function() {
+    return {shapesN: 1, pointsN: 100};
+  },
+
+  handleChange: function() {
+    this.setState({
+      shapesN: this.refs.shapesN.getDOMNode().value,
+      pointsN: this.refs.pointsN.getDOMNode().value
+    });
+  },
+
+  render: function() {
+    /* jshint ignore:start */
+    return (
+      <div>
+        Kappaleita enintään <input ref="shapesN" type="number" value={this.state.shapesN} onChange={this.handleChange} />
+        Pisteitä kappaleissa enintään <input ref="pointsN" type="number" value={this.state.pointsN} onChange={this.handleChange} />
+        <ModernArtGenerator shapesN={this.state.shapesN} pointsN={this.state.pointsN} />
+      </div>
+    );
+    /* jshint ignore:end */
+  }
+});
 
 /* jshint ignore:start */
-
 React.renderComponent(
-  <Coords shapes={shapes} bounds={bounds} width={width} height={height} />,
+  <Application />,
   document.getElementById("content")
 );
-
 /* jshint ignore:end */
