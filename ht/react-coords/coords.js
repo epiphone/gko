@@ -53,14 +53,17 @@ var Coords = React.createClass({
     var fullHeight = height + margin.top + margin.bottom;
     var transform = "translate(" + margin.left + "," + margin.top + ")";
 
-    var shapes = !this.state.width ? null : (
-      <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} />
-    );
+    var shapes, axes;
+    if (this.state.width) {
+      shapes = <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} />;
+      axes = <Axes x={x} y={y} bounds={bounds} />;
+    }
 
     return (
       <div className="coords">
         <svg width={fullWidth} height={fullHeight}>
           <g transform={transform}>
+            {axes}
             {shapes}
           </g>
         </svg>
@@ -70,13 +73,94 @@ var Coords = React.createClass({
   }
 });
 
+/** Vertical and horizontal axes for the coordinate system. */
+var Axes = React.createClass({
+  /** Redraw axes and labels.  */
+  update: function(props) {
+    var container = d3.select(this.getDOMNode());
+    var transitionDuration = props.transitionDuration || 550;
+    var bounds = this.props.bounds;
+    var spacing = this.props.spacing || 1;
+    var x = this.props.x;
+    var y = this.props.y;
+
+    var xAxes = container.selectAll(".x.axis")
+      .data(d3.range(Math.round(bounds.minX), Math.round(bounds.maxX) + spacing, spacing));
+
+    xAxes.enter().append("line")
+      .attr("class", function(d) { return ["x axis", d === 0 ? "thick" : ""].join(" "); });
+
+    xAxes.transition().duration(transitionDuration)
+      .attr("x1", x)
+      .attr("y1", y(bounds.minY))
+      .attr("x2", x)
+      .attr("y2", y(bounds.maxY));
+
+    xAxes.exit().remove();
+
+
+    var yAxes = container.selectAll(".y.axis")
+      .data(d3.range(Math.round(bounds.minY), Math.round(bounds.maxY) + spacing, spacing));
+
+    yAxes.enter().append("line")
+      .attr("class", function(d) { return ["y axis", d === 0 ? "thick" : ""].join(" "); });
+
+    yAxes.transition().duration(transitionDuration)
+      .attr("x1", x(bounds.minX))
+      .attr("y1", y)
+      .attr("x2", x(bounds.maxX))
+      .attr("y2", y);
+
+    yAxes.exit().remove();
+
+
+    var xLblRange = d3.range(Math.ceil((bounds.minX) / spacing), Math.round(bounds.maxX) + spacing, spacing);
+    var yLblRange = d3.range(Math.ceil((bounds.minY) / spacing), Math.round(bounds.maxY) + spacing, spacing);
+    var isXLabel = function(index) { return index < xLblRange.length; };
+
+    var labels = container.selectAll("text.label")
+      .data(xLblRange.concat(yLblRange));
+
+    labels.enter().append("text")
+      .attr("class", function(d, i) { return "label " + (isXLabel(i) ? "x" : "y"); })
+      .attr("text-anchor", "middle")
+      .style("display", function(d) { if (!d) return "none"; })
+      .text(Object)
+      .attr("dy", function(d, i) { return isXLabel(i) ? "1.4em" : ".3em"; })
+      .attr("dx", function(d, i) { return isXLabel(i) ? null : "-.8em"; })
+      .attr("font-size", 1 + "em");
+
+    labels.transition().duration(transitionDuration)
+      .attr("x", function(d, i) { return isXLabel(i) ? x(d) : x(0); })
+      .attr("y", function(d, i) { return isXLabel(i) ? y(0) : y(d); });
+
+    labels.exit().remove();
+  },
+
+  componentDidMount: function() {
+    this.update(this.props);
+  },
+
+  shouldComponentUpdate: function(nextProps) {
+    this.update(nextProps);
+    return false;
+  },
+
+  render: function() {
+    return (
+      /* jshint ignore:start */
+      <g className="axes"/>
+      /* jshint ignore:end */
+    );
+  }
+});
+
 
 /** Various geometric shapes to be drawn on the coordinate system. */
 var Shapes = React.createClass({
-  /** Redraw the circle. */
+  /** Enter, update and remove shapes. */
   update: function(props) {
     var container = d3.select(this.getDOMNode());
-
     var transitionDuration = props.transitionDuration || 550;
 
     var polygons = container.selectAll("polygon.shape")
@@ -94,7 +178,6 @@ var Shapes = React.createClass({
     polygons.exit().remove();
 
 
-    // Enter, update and remove circles
     var circles = container.selectAll("circle.shape")
       .data(props.data.filter(function(s) { return s.points.length == 1; }));
 
@@ -108,7 +191,6 @@ var Shapes = React.createClass({
     circles.exit().remove();
 
 
-    // Enter, update and remove lines
     var lines = container.selectAll("line.shape")
       .data(props.data.filter(function(s) { return s.points.length == 2; }));
 
@@ -123,7 +205,6 @@ var Shapes = React.createClass({
     lines.exit().remove();
 
 
-    // Update all shapes (common attributes)
     container.selectAll(".shape")
       .attr("fill", function(d) { return d.fill || "transparent"; })
       .attr("stroke", function(d) { return d.stroke || "steelblue"; })
@@ -141,7 +222,7 @@ var Shapes = React.createClass({
 
   render: function() {
     /* jshint ignore:start */
-    return <g/>;
+    return <g className="shapes-container"/>;
     /* jshint ignore:end */
   }
 });
