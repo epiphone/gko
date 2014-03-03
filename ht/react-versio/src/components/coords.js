@@ -1,5 +1,5 @@
 /** @jsx React.DOM */
-/* global React, d3 */
+/* global React, d3, MathUtils */
 "use strict";
 
 
@@ -55,12 +55,12 @@ var Coords = React.createClass({
 
     var shapes, axes;
     if (this.state.width) {
-      shapes = <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} />;
+      shapes = this.state.width ? <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} /> : null;
       axes = <Axes x={x} y={y} bounds={bounds} />;
     }
 
     return (
-      <div className="coords">
+      <div className="coords-container">
         <svg width={fullWidth} height={fullHeight}>
           <g transform={transform}>
             {axes}
@@ -75,6 +75,7 @@ var Coords = React.createClass({
 
 /** Vertical and horizontal axes for the coordinate system. */
 var Axes = React.createClass({
+
   /** Redraw axes and labels.  */
   update: function(props) {
     var container = d3.select(this.getDOMNode());
@@ -83,56 +84,40 @@ var Axes = React.createClass({
     var spacing = this.props.spacing || 1;
     var x = this.props.x;
     var y = this.props.y;
+    var xRange = d3.range(Math.ceil((bounds.minX) / spacing), Math.round(bounds.maxX) + spacing, spacing);
+    var yRange = d3.range(Math.ceil((bounds.minY) / spacing), Math.round(bounds.maxY) + spacing, spacing);
+    var data = xRange.concat(yRange);
+    var isX = function(index) { return index < xRange.length; };
 
-    var xAxes = container.selectAll(".x.axis")
-      .data(d3.range(Math.round(bounds.minX), Math.round(bounds.maxX) + spacing, spacing));
+    var axes = container.selectAll(".axis")
+      .data(data);
 
-    xAxes.enter().append("line")
-      .attr("class", function(d) { return ["x axis", d === 0 ? "thick" : ""].join(" "); });
+    axes.enter().append("line")
+      .attr("class", function(d, i) { return "axis " + (d === 0 ? "thick" : ""); });
 
-    xAxes.transition().duration(transitionDuration)
-      .attr("x1", x)
-      .attr("y1", y(bounds.minY))
-      .attr("x2", x)
-      .attr("y2", y(bounds.maxY));
+    axes.transition().duration(transitionDuration)
+      .attr("x1", function(d, i) { return isX(i) ? x(d) : x(bounds.minX); })
+      .attr("y1", function(d, i) { return isX(i) ? y(bounds.minY) : y(d); })
+      .attr("x2", function(d, i) { return isX(i) ? x(d) : x(bounds.maxX); })
+      .attr("y2", function(d, i) { return isX(i) ? y(bounds.maxY) : y(d); });
 
-    xAxes.exit().remove();
-
-
-    var yAxes = container.selectAll(".y.axis")
-      .data(d3.range(Math.round(bounds.minY), Math.round(bounds.maxY) + spacing, spacing));
-
-    yAxes.enter().append("line")
-      .attr("class", function(d) { return ["y axis", d === 0 ? "thick" : ""].join(" "); });
-
-    yAxes.transition().duration(transitionDuration)
-      .attr("x1", x(bounds.minX))
-      .attr("y1", y)
-      .attr("x2", x(bounds.maxX))
-      .attr("y2", y);
-
-    yAxes.exit().remove();
+    axes.exit().remove();
 
 
-    var xLblRange = d3.range(Math.ceil((bounds.minX) / spacing), Math.round(bounds.maxX) + spacing, spacing);
-    var yLblRange = d3.range(Math.ceil((bounds.minY) / spacing), Math.round(bounds.maxY) + spacing, spacing);
-    var isXLabel = function(index) { return index < xLblRange.length; };
-
-    var labels = container.selectAll("text.label")
-      .data(xLblRange.concat(yLblRange));
+    var labels = container.selectAll(".label").data(data);
 
     labels.enter().append("text")
-      .attr("class", function(d, i) { return "label " + (isXLabel(i) ? "x" : "y"); })
+      .attr("class", function(d, i) { return "label " + (isX(i) ? "x" : "y"); })
       .attr("text-anchor", "middle")
       .style("display", function(d) { if (!d) return "none"; })
       .text(Object)
-      .attr("dy", function(d, i) { return isXLabel(i) ? "1.4em" : ".3em"; })
-      .attr("dx", function(d, i) { return isXLabel(i) ? null : "-.8em"; })
+      .attr("dy", function(d, i) { return isX(i) ? "1.4em" : ".3em"; })
+      .attr("dx", function(d, i) { return isX(i) ? null : "-.8em"; })
       .attr("font-size", 1 + "em");
 
     labels.transition().duration(transitionDuration)
-      .attr("x", function(d, i) { return isXLabel(i) ? x(d) : x(0); })
-      .attr("y", function(d, i) { return isXLabel(i) ? y(0) : y(d); });
+      .attr("x", function(d, i) { return isX(i) ? x(d) : x(0); })
+      .attr("y", function(d, i) { return isX(i) ? y(0) : y(d); });
 
     labels.exit().remove();
   },
@@ -158,7 +143,8 @@ var Axes = React.createClass({
 
 /** Various geometric shapes to be drawn on the coordinate system. */
 var Shapes = React.createClass({
-  /** Enter, update and remove shapes. */
+
+  /** Redraw shapes. */
   update: function(props) {
     var container = d3.select(this.getDOMNode());
     var transitionDuration = props.transitionDuration || 550;
@@ -222,95 +208,7 @@ var Shapes = React.createClass({
 
   render: function() {
     /* jshint ignore:start */
-    return <g className="shapes-container"/>;
+    return <g className="shapes"/>;
     /* jshint ignore:end */
   }
 });
-
-
-
-/** Generates modern art. */
-var ModernArtGenerator = React.createClass({
-
-  changeShapes: function() {
-    function randomPoint() {
-      var x = Math.floor(Math.random() * 10);
-      var y = Math.floor(Math.random() * 10);
-      return [x, y];
-    }
-
-    function randomColor() {
-      var colors = "#1f77b4 #aec7e8 #ff7f0e #ffbb78 #2ca02c #98df8a #d62728 #ff9896 #9467bd #c5b0d5 #8c564b #c49c94 #e377c2 #f7b6d2 #7f7f7f #c7c7c7 #bcbd22 #dbdb8d #17becf #9edae5".split(" ");
-      return colors[Math.floor(Math.random() * colors.length)];
-    }
-
-    var shapesN = Math.ceil(Math.random() * this.props.shapesN);
-    var shapes = [];
-
-    for (var i = 0; i < shapesN; i++) {
-      var pointsN = Math.ceil(Math.random() * this.props.pointsN);
-      shapes.push({points: [], stroke: randomColor()});
-      for (var j = 0; j < pointsN; j++) {
-        shapes[i].points.push(randomPoint());
-      }
-
-      if (shapes[i].points.length === 1)
-        shapes[i].r = Math.random();
-    }
-
-    this.setState({shapes: shapes});
-  },
-
-  componentDidMount: function() {
-    setInterval(this.changeShapes, 1000);
-  },
-
-  getInitialState: function() {
-    return {shapes: []};
-  },
-
-  render: function() {
-    /* jshint ignore:start */
-    var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
-    var aspect = 1;
-
-    return (
-      <Coords shapes={this.state.shapes} bounds={bounds} aspect={aspect} />
-    );
-    /* jshint ignore:end */
-  }
-});
-
-
-var Application = React.createClass({
-
-  getInitialState: function() {
-    return {shapesN: 1, pointsN: 100};
-  },
-
-  handleChange: function() {
-    this.setState({
-      shapesN: this.refs.shapesN.getDOMNode().value,
-      pointsN: this.refs.pointsN.getDOMNode().value
-    });
-  },
-
-  render: function() {
-    /* jshint ignore:start */
-    return (
-      <div>
-        Kappaleita enintään <input ref="shapesN" type="number" value={this.state.shapesN} onChange={this.handleChange} />
-        Pisteitä kappaleissa enintään <input ref="pointsN" type="number" value={this.state.pointsN} onChange={this.handleChange} />
-        <ModernArtGenerator shapesN={this.state.shapesN} pointsN={this.state.pointsN} />
-      </div>
-    );
-    /* jshint ignore:end */
-  }
-});
-
-/* jshint ignore:start */
-React.renderComponent(
-  <Application />,
-  document.getElementById("content")
-);
-/* jshint ignore:end */

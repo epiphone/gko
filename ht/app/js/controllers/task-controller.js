@@ -48,14 +48,13 @@ angular.module("app.controllers")
     }
 
     /**
-     * Compare given answer to the solution, return 1 if correct.
+     * Compare given answer to the solution.
      *
      * @param answer   User's answer.
      * @param solution The correct answer.
-     * @returns 1 if correct, otherwise 0.
+     * @returns {boolean}
      */
     $scope.check = function(answer, solution) {
-        var match = false;
         if (solution instanceof RegExp) {
             match = solution.test(answer);
         } else if (!isNaN(answer) && !isNaN(solution)) {
