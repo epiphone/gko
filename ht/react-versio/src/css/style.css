@@ -1,0 +1,51 @@
+.task-container .task-header {
+  background-color: #428BCA;
+  color: #EEE;
+  padding: 10px 0 20px 0;
+  margin-bottom: 20px;
+}
+
+.task-container .task-header h2 {
+  margin-top: 0;
+}
+
+.task-container .task-done-display {
+  padding-top: 40px;
+}
+
+.task-container .task-done-display .alert {
+  padding: 20px;
+}
+
+.panel-extra-padding .panel-body {
+  padding: 30px;
+}
+
+/*Coordinate system*/
+.task-container .coords-container {
+  height: 100%;
+}
+
+.task-container .coords-container svg {
+  font: 13px sans-serif;
+}
+
+.task-container .coords-container .axes line {
+  fill: none;
+  stroke: #ddd;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 2px;
+  opacity: 0.6;
+  shape-rendering: crispEdges;
+}
+
+.task-container .coords-container line.thick {
+    stroke: #494949;
+}
+
+.task-container .coords-container text.label {
+    pointer-events: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+}

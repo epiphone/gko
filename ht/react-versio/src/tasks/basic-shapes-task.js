@@ -3,27 +3,19 @@
 "use strict";
 
 /**
- * An example task where the aim is to read values from a
- * coordinate system.
+ * Click the appropriate shape in a coordinate system.
  */
-var SimpleCoordsTask = React.createClass({
+var BasicShapesTask = React.createClass({
 
-  /** Reset the question, i.e. generate a new random point. */
+  /** Reset the question, i.e. generate new shapes. */
   reset: function() {
-    var newPoint;
-    do { newPoint = [TaskUtils.randRange(0, 10), TaskUtils.randRange(0, 10)]; }
-    while (TaskUtils.matchesSolution(newPoint, this.state.point));
-
-    this.setState({point: newPoint});
+    var newShapes = [{onClick: this.handleShapeClick, key: 1, points:[[1,1], [4,1], [2,2]]}];
+    this.setState({shapes: newShapes, correctKey: 1});
   },
 
-  /** Check if correct. */
-  handleAnswer: function(x, y) {
-    var isCorrect = TaskUtils.matchesSolution([x, y], this.state.point);
-    if (isCorrect)
-      this.handleCorrectAnswer();
-
-    return isCorrect;
+  /** Check if correct shape and proceed. */
+  handleShapeClick: function(shape) {
+    console.log("clicked shape with key", shape.key);
   },
 
   handleCorrectAnswer: function() {
@@ -44,7 +36,7 @@ var SimpleCoordsTask = React.createClass({
   },
 
   getInitialState: function() {
-    return {step: 1, point: null};
+    return {step: 1, shapes: null};
   },
 
   getDefaultProps: function() {
@@ -55,24 +47,23 @@ var SimpleCoordsTask = React.createClass({
   },
 
   render: function() {
-    var point = this.state.point;
+    /* jshint ignore:start */
+    var shapes = this.state.shapes;
     var taskIsDone = this.state.step > parseInt(this.props.steps);
     var coords, sidebar;
 
     /* jshint ignore:start */
-    if (point && !taskIsDone) {
-      var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
-      var shapes = [{points: [point], r:0.2, strokeWidth: 3, stroke: "#FF5B24", fill:"#FD0000"}];
+    if (shapes && !taskIsDone) {
+      var bounds = {maxY: 10, maxX: 10, minY: 0, minX: 0};
 
-      coords = <Coords shapes={shapes} bounds={bounds} aspect="1" />;
+      coords = <Coords drawAxes={false} shapes={shapes} bounds={bounds} aspect="1" />;
+
+      var shapeToFind = "kolmio";
 
       sidebar = (
         <div>
           <TaskPanel header="Kysymys">
-            <span>Mitkä ovat pisteen x-ja y-koordinaatit?</span>
-          </TaskPanel>
-          <TaskPanel header="Vastaus" className="panel-success panel-extra-padding">
-            <CoordsAnswerForm ref="form" onAnswer={this.handleAnswer} />
+            Etsi koordinaatistosta <strong>{shapeToFind}</strong> ja klikkaa sitä
           </TaskPanel>
         </div>
       );
@@ -83,7 +74,7 @@ var SimpleCoordsTask = React.createClass({
 
     return (
       <div className="task-container">
-        <TaskHeader name="Koordinaatiston lukeminen" step={this.state.step} steps={this.props.steps} />
+        <TaskHeader name="Kappaleiden tunnistaminen" step={this.state.step} steps={this.props.steps} />
         <div className="row">
           <div className="col-sm-6 question">
             {coords}

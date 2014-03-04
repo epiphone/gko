@@ -42,7 +42,6 @@ var TaskUtils = (function() {
         return Math.floor(Math.random() * max);
     };
 
-
     /**
      * Generate a range of integers.
      * @param {number}  min  Inclusive lower bound.

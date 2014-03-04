@@ -14,6 +14,15 @@ var Coords = React.createClass({
     return {width: 0};
   },
 
+  getDefaultProps: function() {
+    return {
+      drawAxes: true,
+      shapes: [],
+      bounds: {maxY:10, maxX:10, minY:0, minX:0},
+      aspect: 1
+    };
+  },
+
   componentDidMount: function() {
     window.addEventListener("resize", this.handleResize);
     this.handleResize();
@@ -53,17 +62,17 @@ var Coords = React.createClass({
     var fullHeight = height + margin.top + margin.bottom;
     var transform = "translate(" + margin.left + "," + margin.top + ")";
 
-    var shapes, axes;
+    var shapes, grid;
     if (this.state.width) {
       shapes = this.state.width ? <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} /> : null;
-      axes = <Axes x={x} y={y} bounds={bounds} />;
+      grid = <Grid drawAxes={this.props.drawAxes} x={x} y={y} bounds={bounds} />;
     }
 
     return (
       <div className="coords-container">
         <svg width={fullWidth} height={fullHeight}>
           <g transform={transform}>
-            {axes}
+            {grid}
             {shapes}
           </g>
         </svg>
@@ -73,10 +82,10 @@ var Coords = React.createClass({
   }
 });
 
-/** Vertical and horizontal axes for the coordinate system. */
-var Axes = React.createClass({
+/** A grid for the coordinate system. */
+var Grid = React.createClass({
 
-  /** Redraw axes and labels.  */
+  /** Redraw grid.  */
   update: function(props) {
     var container = d3.select(this.getDOMNode());
     var transitionDuration = props.transitionDuration || 550;
@@ -93,7 +102,9 @@ var Axes = React.createClass({
       .data(data);
 
     axes.enter().append("line")
-      .attr("class", function(d, i) { return "axis " + (d === 0 ? "thick" : ""); });
+      .attr("class", function(d, i) {
+        return "axis " + ((props.drawAxes && d === 0) ? "thick" : "");
+      });
 
     axes.transition().duration(transitionDuration)
       .attr("x1", function(d, i) { return isX(i) ? x(d) : x(bounds.minX); })
@@ -103,23 +114,28 @@ var Axes = React.createClass({
 
     axes.exit().remove();
 
+    if (props.drawAxes) {
+      var labels = container.selectAll(".label").data(data);
 
-    var labels = container.selectAll(".label").data(data);
+      labels.enter().append("text")
+        .attr("class", function(d, i) { return "label " + (isX(i) ? "x" : "y"); })
+        .attr("text-anchor", "middle")
+        .style("display", function(d) { if (!d) return "none"; })
+        .text(Object)
+        .attr("dy", function(d, i) { return isX(i) ? "1.4em" : ".3em"; })
+        .attr("dx", function(d, i) { return isX(i) ? null : "-.8em"; })
+        .attr("font-size", 1 + "em");
 
-    labels.enter().append("text")
-      .attr("class", function(d, i) { return "label " + (isX(i) ? "x" : "y"); })
-      .attr("text-anchor", "middle")
-      .style("display", function(d) { if (!d) return "none"; })
-      .text(Object)
-      .attr("dy", function(d, i) { return isX(i) ? "1.4em" : ".3em"; })
-      .attr("dx", function(d, i) { return isX(i) ? null : "-.8em"; })
-      .attr("font-size", 1 + "em");
+      labels.transition().duration(transitionDuration)
+        .attr("x", function(d, i) { return isX(i) ? x(d) : x(0); })
+        .attr("y", function(d, i) { return isX(i) ? y(0) : y(d); });
 
-    labels.transition().duration(transitionDuration)
-      .attr("x", function(d, i) { return isX(i) ? x(d) : x(0); })
-      .attr("y", function(d, i) { return isX(i) ? y(0) : y(d); });
+      labels.exit().remove();
+    }
+  },
 
-    labels.exit().remove();
+  getDefaultProps: function() {
+    return { drawAxes: true };
   },
 
   componentDidMount: function() {
@@ -152,7 +168,11 @@ var Shapes = React.createClass({
     var polygons = container.selectAll("polygon.shape")
       .data(props.data.filter(function(s) { return s.points.length > 2; }));
 
-    polygons.enter().append("polygon").attr("class", "shape");
+    polygons.enter().append("polygon").attr("class", "shape")
+      .on("click", function(d) {
+        if ($.isFunction(d.onClick))
+          d.onClick(d);
+      });
 
     polygons.transition().duration(transitionDuration)
       .attr("points", function(d) {

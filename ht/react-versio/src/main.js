@@ -2,9 +2,24 @@
 "use strict";
 /* global React, SimpleCoordsTask */
 
-// SimpleCoordsTask(null),
+function taskDone() {
+    console.log("task is done");
+}
 
-React.renderComponent(
-  <AnswerForm />,
-  document.getElementById("content")
-);
+function renderTask(taskName) {
+    var component;
+    /* jshint ignore:start */
+    if (taskName === "coords") {
+        component = <SimpleCoordsTask onTaskDone={taskDone} steps="5" />;
+    } else if (taskName === "shapes") {
+        component = <BasicShapesTask onTaskDone={taskDone} steps="3" />;
+    }
+
+    React.renderComponent(
+        component,
+        document.getElementById("content")
+    );
+    /* jshint ignore:end */
+}
+
+renderTask("shapes");
