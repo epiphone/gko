@@ -49,7 +49,10 @@ var SimpleCoordsTask = React.createClass({
   },
 
   getInitialState: function() {
-    return {step: 1, point: null};
+    return {
+      step: 1,
+      point: null
+    };
   },
 
   render: function() {
@@ -66,7 +69,7 @@ var SimpleCoordsTask = React.createClass({
 
       sidebar = (
         <div>
-          <TaskPanel header="Kysymys">
+          <TaskPanel header="Ohjeet">
             <span>Mitkä ovat pisteen x-ja y-koordinaatit?</span>
           </TaskPanel>
           <TaskPanel header="Vastaus" className="panel-success panel-extra-padding">

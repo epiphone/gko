@@ -34,6 +34,30 @@ var TaskPanel = React.createClass({
   }
 });
 
+/**
+ * A wrapper for Bootstrap's progress bar element.
+ */
+var TaskProgressBar = React.createClass({
+  propTypes: {
+    max: React.PropTypes.number.isRequired,
+    now: React.PropTypes.number.isRequired
+  },
+
+  render: function() {
+    /* jshint ignore:start */
+    var singleWidth = Math.ceil(1 / this.props.max * 100);
+    var leftStyle = {width: singleWidth * (this.props.now - 1) + "%"};
+    var rightStyle = {width: singleWidth * (this.props.max - this.props.now + 1) + "%"};
+
+    return (
+      <div className="progress progress-striped active task-progress-bar">
+        <div className="progress-bar progress-bar-success" style={leftStyle}/>
+        <div className="progress-bar progress-bar-warning" style={rightStyle}/>
+      </div>
+    );
+    /* jshint ignore:end */
+  }
+});
 
 /**
  * Task header with task name and an optional step counter.
@@ -50,24 +74,15 @@ var TaskHeader = React.createClass({
     /* jshint ignore:start */
     var stepCounter;
     if (this.props.step && this.props.steps) {
-      var ratio = (this.props.step - 1) / (this.props.steps);
-      var style = {width: Math.ceil(ratio * 100) + "%"};
-      stepCounter = (
-        <div className="progress progress-striped active">
-          <div className="progress-bar progress-bar-success" role="progressbar" aria-valuemin="1"
-           aria-valuenow={this.props.step} aria-valuemax={this.props.steps} style={style}>
-            {this.props.step - 1} / {this.props.steps}
-           </div>
-        </div>
-      );
+      stepCounter = <TaskProgressBar max={this.props.steps} now={this.props.step}/>;
     }
 
     return (
       <div className="task-header row">
-        <div className="col-sm-8">
+        <div className="col-sm-7">
           <h2>{this.props.name}</h2>
         </div>
-        <div className="col-sm-4">
+        <div className="col-sm-5">
           {stepCounter}
         </div>
       </div>
@@ -128,7 +143,7 @@ var SetTimeoutMixin = {
 };
 
 /**
- * Trigger singleshot animations through CSS classes.
+ * Apply CSS classes for set duration, useful for singleshot animations.
  */
 var TriggerAnimationMixin = {
   animate: function(elem, className, duration) {

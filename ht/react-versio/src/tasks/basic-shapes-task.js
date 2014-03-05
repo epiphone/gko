@@ -7,6 +7,16 @@
  */
 var BasicShapesTask = React.createClass({
 
+  propTypes: {
+    steps: React.PropTypes.number.isRequired,
+    onTaskDone: React.PropTypes.func.isRequired
+  },
+
+  startGame: function() {
+    this.setState({isRunning: true});
+    this.reset();
+  },
+
   /** Reset the question, i.e. generate new shapes. */
   reset: function() {
     var newShapes = [{onClick: this.handleShapeClick, key: 1, points:[[1,1], [4,1], [2,2]]}];
@@ -31,18 +41,11 @@ var BasicShapesTask = React.createClass({
     this.props.onTaskDone();
   },
 
-  componentDidMount: function() {
-    this.reset();
-  },
-
   getInitialState: function() {
-    return {step: 1, shapes: null};
-  },
-
-  getDefaultProps: function() {
     return {
-      steps: 5,
-      onTaskDone: function() { throw "onTaskDone attribute not specified"; }
+      shapes: [],
+      step: 1,
+      isRunning: false
     };
   },
 
@@ -53,17 +56,27 @@ var BasicShapesTask = React.createClass({
     var coords, sidebar;
 
     /* jshint ignore:start */
-    if (shapes && !taskIsDone) {
+    if (!taskIsDone) {
       var bounds = {maxY: 10, maxX: 10, minY: 0, minX: 0};
 
       coords = <Coords drawAxes={false} shapes={shapes} bounds={bounds} aspect={1} />;
 
       var shapeToFind = "kolmio";
 
+      var startBtn = this.state.isRunning ? null : (
+        <div>
+          <hr/>
+          <button className="animated animated-repeat bounce btn btn-primary btn-block" onClick={this.startGame}>
+            Aloita peli
+          </button>
+        </div>
+      );
+
       sidebar = (
         <div>
-          <TaskPanel header="Kysymys">
+          <TaskPanel header="Ohjeet">
             Etsi koordinaatistosta <strong>{shapeToFind}</strong> ja klikkaa sitä
+            {startBtn}
           </TaskPanel>
         </div>
       );

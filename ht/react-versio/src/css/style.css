@@ -1,5 +1,11 @@
+/* Extends animate.css */
+.animated-repeat {
+  animation-iteration-count: infinite;
+  -webkit-animation-iteration-count: infinite;
+}
+
 .task-container .task-header {
-  background-color: #428BCA;
+  background-color: #307DBE;
   color: #EEE;
   padding: 10px 0 20px 0;
   margin-bottom: 20px;
@@ -15,6 +21,11 @@
 
 .task-container .task-done-display .alert {
   padding: 20px;
+}
+
+.task-container .task-progress-bar {
+  margin-bottom: 0;
+  height: 40px;
 }
 
 .panel-extra-padding .panel-body {
