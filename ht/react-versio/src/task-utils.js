@@ -42,6 +42,19 @@ var TaskUtils = (function() {
         return Math.floor(Math.random() * max);
     };
 
+    /** Reorders given array randomly, doesn't modify original array. */
+    TaskUtils.shuffle = function(arr) {
+        var clone = arr.slice();
+        var shuffled = [];
+
+        for (var i = clone.length; i > 0; i--) {
+            var index = this.rand(i);
+            shuffled.push(clone.splice(index, 1)[0]);
+        }
+
+        return shuffled;
+    };
+
     /**
      * Generate a range of integers.
      * @param {number}  min  Inclusive lower bound.
@@ -74,12 +87,23 @@ var TaskUtils = (function() {
     TaskUtils.arraysEqual = function(arr1, arr2) {
         if (arr1.length !== arr2.length)
             return false;
-        for (var i = 0; i < arr1.length; i++) {
-            if (arr1[i] !== arr2[i])
-                return false;
-        }
 
-        return true;
+        return arr1.every(function(d, i) {
+            return d === arr2[i];
+        });
+    };
+
+    /**
+     * Translate an array of points by given x and y values.
+     * @param  {[[number]]} points
+     * @param  {number}     x
+     * @param  {number}     y
+     * @return {[[number]]}
+     */
+    TaskUtils.translate = function(points, x, y) {
+        return points.map(function(point) {
+            return [point[0] + x, point[1] + y];
+        });
     };
 
     /**

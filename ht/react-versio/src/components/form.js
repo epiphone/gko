@@ -36,8 +36,8 @@ var CoordsAnswerForm = React.createClass({
     /* jshint ignore:start */
     return (
       <AnswerForm ref="form" className="form-horizontal" onAnswer={this.handleAnswer}>
-        <ReInput ref="x" placeholder="x"/>
-        <ReInput ref="y" placeholder="y"/>
+        <ReInput ref="x" type="number" placeholder="x"/>
+        <ReInput ref="y" type="number" placeholder="y"/>
       </AnswerForm>
     );
     /* jshint ignore:end */

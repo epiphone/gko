@@ -1,5 +1,5 @@
 /** @jsx React.DOM */
-/* global React, TaskUtils */
+/* global React, d3, TaskUtils */
 "use strict";
 
 /**
@@ -8,33 +8,60 @@
 var BasicShapesTask = React.createClass({
 
   propTypes: {
-    steps: React.PropTypes.number.isRequired,
     onTaskDone: React.PropTypes.func.isRequired
   },
 
   startGame: function() {
-    this.setState({isRunning: true});
+    this.setState({isRunning: true, score: 0});
     this.reset();
+  },
+
+  /**
+   * Returns an array of six different shapes that fill the coords
+   * in a random order.
+   */
+  getRandomShapes: function() {
+    var c1 = 0.46, c2 = 1.21, s1 = 1.43, s2 = 0.885;
+    var pentagonPts = [[-s2,-c2], [-s1,c1], [0,1.5], [s1,c1], [s2,-c2]];
+    pentagonPts = TaskUtils.translate(pentagonPts, 2.5, 1.5);
+
+    var translates = [[0,0], [6,0], [0,4], [6,4], [0,8], [6,8]];
+    var bases = [
+      {name:"kolmio", points:[[1,0], [1,3], [4,0]]},
+      {name:"neliö", points:[[1,0], [1,3], [4,3], [4,0]]},
+      {name:"ympyrä", points:[[2.5,1.5]], r:1.5},
+      {name:"suunnikas", points:[[0,0], [0.5,3], [4.5,3], [4,0]]},
+      {name:"puolisuunnikas", points:[[0,0], [0.5,3], [4,3], [4.5,0]]},
+      {name:"viisikulmio", points:pentagonPts}
+    ];
+    bases = TaskUtils.shuffle(bases);
+
+    var clrs = d3.scale.category10();
+    var clrSeed = TaskUtils.rand(20);
+    var shapes = bases.map(function(base, i) {
+      var translateX = translates[i][0] + Math.random();
+      var translateY = translates[i][1] + Math.random();
+      base.points = TaskUtils.translate(base.points, translateX, translateY);
+      base.key = i;
+      base.onClick = this.handleShapeClick;
+      base.stroke = "black";
+      base.fill = clrs(20 % (i + clrSeed));
+      return base;
+    }.bind(this));
+
+    return shapes;
   },
 
   /** Reset the question, i.e. generate new shapes. */
   reset: function() {
-    var newShapes = [{onClick: this.handleShapeClick, key: 1, points:[[1,1], [4,1], [2,2]]}];
-    this.setState({shapes: newShapes, correctKey: 1});
+
+    this.setState({shapes: this.getRandomShapes(), correctKey: TaskUtils.rand(6)});
   },
 
   /** Check if correct shape and proceed. */
   handleShapeClick: function(shape) {
     console.log("clicked shape with key", shape.key);
-  },
-
-  handleCorrectAnswer: function() {
-    var step = this.state.step;
-    if (step === parseInt(this.props.steps))
-      this.handleTaskDone();
-    else
-      this.reset();
-      this.setState({step: step + 1});
+    this.reset();
   },
 
   handleTaskDone: function() {
@@ -44,8 +71,9 @@ var BasicShapesTask = React.createClass({
   getInitialState: function() {
     return {
       shapes: [],
-      step: 1,
-      isRunning: false
+      score: 0,
+      isRunning: false,
+      isFinished: false
     };
   },
 
@@ -55,9 +83,8 @@ var BasicShapesTask = React.createClass({
     var taskIsDone = this.state.step > parseInt(this.props.steps);
     var coords, sidebar;
 
-    /* jshint ignore:start */
-    if (!taskIsDone) {
-      var bounds = {maxY: 10, maxX: 10, minY: 0, minX: 0};
+    if (!this.state.isFinished) {
+      var bounds = {maxY: 12, maxX: 12, minY: 0, minX: 0};
 
       coords = <Coords drawAxes={false} shapes={shapes} bounds={bounds} aspect={1} />;
 
