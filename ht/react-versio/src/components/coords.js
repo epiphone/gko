@@ -5,6 +5,13 @@
 
 var Coords = React.createClass({
 
+  propTypes: {
+    drawAxes: React.PropTypes.bool,
+    shapes: React.PropTypes.array,
+    bounds: React.PropTypes.object,
+    aspect: React.PropTypes.number
+  },
+
   handleResize: function() {
     var parent = $(this.getDOMNode().parentNode);
     this.setState({width: parent.width()});
@@ -64,7 +71,7 @@ var Coords = React.createClass({
 
     var shapes, grid;
     if (this.state.width) {
-      shapes = this.state.width ? <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} /> : null;
+      shapes = <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} />;
       grid = <Grid drawAxes={this.props.drawAxes} x={x} y={y} bounds={bounds} />;
     }
 
@@ -85,14 +92,23 @@ var Coords = React.createClass({
 /** A grid for the coordinate system. */
 var Grid = React.createClass({
 
+  propTypes: {
+    x: React.PropTypes.func.isRequired,
+    y: React.PropTypes.func.isRequired,
+    bounds: React.PropTypes.object.isRequired,
+    spacing: React.PropTypes.number,
+    transitionDuration: React.PropTypes.number,
+    drawAxes: React.PropTypes.bool
+  },
+
   /** Redraw grid.  */
   update: function(props) {
     var container = d3.select(this.getDOMNode());
-    var transitionDuration = props.transitionDuration || 550;
-    var bounds = this.props.bounds;
-    var spacing = this.props.spacing || 1;
-    var x = this.props.x;
-    var y = this.props.y;
+    var bounds = props.bounds;
+    var spacing = props.spacing;
+    var x = props.x;
+    var y = props.y;
+
     var xRange = d3.range(Math.ceil((bounds.minX) / spacing), Math.round(bounds.maxX) + spacing, spacing);
     var yRange = d3.range(Math.ceil((bounds.minY) / spacing), Math.round(bounds.maxY) + spacing, spacing);
     var data = xRange.concat(yRange);
@@ -101,12 +117,11 @@ var Grid = React.createClass({
     var axes = container.selectAll(".axis")
       .data(data);
 
-    axes.enter().append("line")
-      .attr("class", function(d, i) {
-        return "axis " + ((props.drawAxes && d === 0) ? "thick" : "");
-      });
+    axes.enter().append("line").attr("class", function(d) {
+      return "axis " + ((props.drawAxes && d === 0) ? "thick" : "");
+    });
 
-    axes.transition().duration(transitionDuration)
+    axes.transition().duration(props.transitionDuration)
       .attr("x1", function(d, i) { return isX(i) ? x(d) : x(bounds.minX); })
       .attr("y1", function(d, i) { return isX(i) ? y(bounds.minY) : y(d); })
       .attr("x2", function(d, i) { return isX(i) ? x(d) : x(bounds.maxX); })
@@ -126,7 +141,7 @@ var Grid = React.createClass({
         .attr("dx", function(d, i) { return isX(i) ? null : "-.8em"; })
         .attr("font-size", 1 + "em");
 
-      labels.transition().duration(transitionDuration)
+      labels.transition().duration(props.transitionDuration)
         .attr("x", function(d, i) { return isX(i) ? x(d) : x(0); })
         .attr("y", function(d, i) { return isX(i) ? y(0) : y(d); });
 
@@ -135,7 +150,11 @@ var Grid = React.createClass({
   },
 
   getDefaultProps: function() {
-    return { drawAxes: true };
+    return {
+      drawAxes: true,
+      transitionDuration: 550,
+      spacing: 1
+    };
   },
 
   componentDidMount: function() {
@@ -159,6 +178,14 @@ var Grid = React.createClass({
 
 /** Various geometric shapes to be drawn on the coordinate system. */
 var Shapes = React.createClass({
+
+  propTypes: {
+    data: React.PropTypes.array.isRequired,
+    x: React.PropTypes.func.isRequired,
+    y: React.PropTypes.func.isRequired,
+    spacing: React.PropTypes.number.isRequired,
+    transitionDuration: React.PropTypes.number
+  },
 
   /** Redraw shapes. */
   update: function(props) {

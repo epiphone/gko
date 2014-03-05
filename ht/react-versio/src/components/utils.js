@@ -11,10 +11,15 @@
  * A wrapper for Bootstrap's panel component.
  */
 var TaskPanel = React.createClass({
+
+  propTypes: {
+    className: React.PropTypes.string
+  },
+
   render: function() {
+    /* jshint ignore:start */
     var className = "panel " + (this.props.className || "panel-info" );
 
-    /* jshint ignore:start */
     return (
       <div className={className}>
         <div className="panel-heading">
@@ -34,6 +39,13 @@ var TaskPanel = React.createClass({
  * Task header with task name and an optional step counter.
  */
 var TaskHeader = React.createClass({
+
+  propTypes: {
+    name: React.PropTypes.string.isRequired,
+    step: React.PropTypes.number,
+    steps: React.PropTypes.number
+  },
+
   render: function() {
     /* jshint ignore:start */
     var stepCounter;
@@ -69,10 +81,15 @@ var TaskHeader = React.createClass({
  * An element that is shown after a completed task.
  */
 var TaskDoneDisplay = React.createClass({
+
+  propTypes: {
+    score: React.PropTypes.number
+  },
+
   render: function() {
+    /* jshint ignore:start */
     var score = this.props.score || 0;
 
-    /* jshint ignore:start */
     return (
       <div className="task-done-display animate bounce-in">
         <div className="alert alert-success">

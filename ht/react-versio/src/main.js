@@ -10,16 +10,16 @@ function renderTask(taskName) {
     var component;
     /* jshint ignore:start */
     if (taskName === "coords") {
-        component = <SimpleCoordsTask onTaskDone={taskDone} steps="5" />;
+        component = <SimpleCoordsTask onTaskDone={taskDone} steps={5} />;
     } else if (taskName === "shapes") {
-        component = <BasicShapesTask onTaskDone={taskDone} steps="3" />;
+        component = <BasicShapesTask onTaskDone={taskDone} steps={3} />;
     }
+    /* jshint ignore:end */
 
     React.renderComponent(
         component,
         document.getElementById("content")
     );
-    /* jshint ignore:end */
 }
 
 renderTask("shapes");

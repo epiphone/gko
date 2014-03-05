@@ -8,6 +8,11 @@
  */
 var SimpleCoordsTask = React.createClass({
 
+  propTypes: {
+    steps: React.PropTypes.number.isRequired,
+    onTaskDone: React.PropTypes.func.isRequired
+  },
+
   /** Reset the question, i.e. generate a new random point. */
   reset: function() {
     var newPoint;
@@ -47,24 +52,17 @@ var SimpleCoordsTask = React.createClass({
     return {step: 1, point: null};
   },
 
-  getDefaultProps: function() {
-    return {
-      steps: 5,
-      onTaskDone: function() { throw "onTaskDone attribute not specified"; }
-    };
-  },
-
   render: function() {
+    /* jshint ignore:start */
     var point = this.state.point;
     var taskIsDone = this.state.step > parseInt(this.props.steps);
     var coords, sidebar;
 
-    /* jshint ignore:start */
     if (point && !taskIsDone) {
       var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
       var shapes = [{points: [point], r:0.2, strokeWidth: 3, stroke: "#FF5B24", fill:"#FD0000"}];
 
-      coords = <Coords shapes={shapes} bounds={bounds} aspect="1" />;
+      coords = <Coords shapes={shapes} bounds={bounds} aspect={1} />;
 
       sidebar = (
         <div>

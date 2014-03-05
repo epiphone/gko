@@ -56,7 +56,7 @@ var BasicShapesTask = React.createClass({
     if (shapes && !taskIsDone) {
       var bounds = {maxY: 10, maxX: 10, minY: 0, minX: 0};
 
-      coords = <Coords drawAxes={false} shapes={shapes} bounds={bounds} aspect="1" />;
+      coords = <Coords drawAxes={false} shapes={shapes} bounds={bounds} aspect={1} />;
 
       var shapeToFind = "kolmio";
 

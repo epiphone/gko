@@ -12,6 +12,10 @@
  */
 var CoordsAnswerForm = React.createClass({
 
+  propTypes: {
+    onAnswer: React.PropTypes.func.isRequired
+  },
+
   handleAnswer: function() {
     if (this.props.onAnswer(this.refs.x.value(), this.refs.y.value())) {
       this.refs.form.handleCorrectAnswer();
@@ -45,6 +49,14 @@ var CoordsAnswerForm = React.createClass({
  * A form that disables submitting when contents are invalid.
  */
 var AnswerForm = React.createClass({
+
+  propTypes: {
+    onAnswer: React.PropTypes.func.isRequired,
+    btnCorrectAnimClass: React.PropTypes.string,
+    btnIncorrectAnimClass: React.PropTypes.string,
+    formClass: React.PropTypes.string,
+    btnClass: React.PropTypes.string
+  },
 
   mixins: [TriggerAnimationMixin],
 
@@ -121,9 +133,18 @@ var AnswerForm = React.createClass({
 
 
 /**
- * Input with validation states.
+ * An <input> with validation states.
  */
 var ReInput = React.createClass({
+
+  propTypes: {
+    re: React.PropTypes.object,
+    showError: React.PropTypes.bool,
+    required: React.PropTypes.bool,
+    placeholder: React.PropTypes.string,
+    type: React.PropTypes.string,
+    className: React.PropTypes.string
+  },
 
   /** Read value, validate, notify parent element. */
   handleChange: function(e) {
@@ -182,13 +203,13 @@ var ReInput = React.createClass({
   },
 
   render: function() {
+    /* jshint ignore:start */
     var validationState = React.addons.classSet({
       "has-success": this.state.isValid && this.state.isDirty,
       "has-warning": !this.state.isDirty && this.props.showError,
       "has-error": !this.state.isValid
     });
 
-    /* jshint ignore:start */
     var error;
     if (this.props.showError) {
       if (!this.state.isValid) {
