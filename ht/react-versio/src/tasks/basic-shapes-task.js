@@ -34,10 +34,10 @@ var BasicShapesTask = React.createClass({
       {name:"puolisuunnikas", points:[[0,0], [0.5,3], [4,3], [4.5,0]]},
       {name:"viisikulmio", points:pentagonPts}
     ];
-    bases = TaskUtils.shuffle(bases);
 
+    bases = TaskUtils.shuffle(bases);
     var clrs = d3.scale.category10();
-    var clrSeed = TaskUtils.rand(20);
+
     var shapes = bases.map(function(base, i) {
       var translateX = translates[i][0] + Math.random();
       var translateY = translates[i][1] + Math.random();
@@ -45,7 +45,7 @@ var BasicShapesTask = React.createClass({
       base.key = i;
       base.onClick = this.handleShapeClick;
       base.stroke = "black";
-      base.fill = clrs(20 % (i + clrSeed));
+      base.fill = clrs(TaskUtils.rand(9));
       return base;
     }.bind(this));
 
@@ -54,13 +54,33 @@ var BasicShapesTask = React.createClass({
 
   /** Reset the question, i.e. generate new shapes. */
   reset: function() {
+    var shapes = this.getRandomShapes();
 
-    this.setState({shapes: this.getRandomShapes(), correctKey: TaskUtils.rand(6)});
+    // Prevent asking for the same shape twice in a row.
+    var possibleTargets = shapes;
+    if (this.state.target) {
+      possibleTargets = possibleTargets.filter(function(shape) {
+        return shape.name !== this.state.target.name;
+      }.bind(this));
+    }
+    var target = possibleTargets[TaskUtils.rand(possibleTargets.length)];
+
+    this.setState({
+      shapes: this.getRandomShapes(),
+      target: target
+    });
   },
 
   /** Check if correct shape and proceed. */
   handleShapeClick: function(shape) {
-    console.log("clicked shape with key", shape.key);
+    var scoreIncrement;
+    if (shape.name === this.state.target.name) {
+      scoreIncrement = 1;
+    } else {
+      scoreIncrement = -1;
+    }
+
+    this.setState({score: Math.max(this.state.score + scoreIncrement, 0)});
     this.reset();
   },
 
@@ -99,11 +119,21 @@ var BasicShapesTask = React.createClass({
         </div>
       );
 
+      var targetDisplay = !this.state.target ? null : (
+        <div className="animated bounce-in">
+          <hr/>
+          Klikattava kappale: <strong>{this.state.target.name}</strong>
+          <hr/>
+          Pisteet: {this.state.score}
+        </div>
+      );
+
       sidebar = (
         <div>
           <TaskPanel header="Ohjeet">
             Etsi koordinaatistosta <strong>{shapeToFind}</strong> ja klikkaa sitä
             {startBtn}
+            {targetDisplay}
           </TaskPanel>
         </div>
       );
