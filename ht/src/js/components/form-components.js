@@ -9,12 +9,14 @@ var Mixins = require("./mixins");
 /**
  * Various common form components.
  */
-var FormComponents = {
+var FormComponents = (function(){
+
+  var module = {};
 
   /**
    * A form that disables submitting when contents are invalid.
    */
-  AnswerForm: React.createClass({
+  module.AnswerForm = React.createClass({
 
     propTypes: {
       onAnswer: React.PropTypes.func.isRequired,
@@ -26,9 +28,10 @@ var FormComponents = {
 
     mixins: [Mixins.TriggerAnimationMixin],
 
+    /** Submit answer if form is valid. */
     handleSubmit: function(e) {
       e.preventDefault();
-      if (this.state.isValid && this.state.isDirty) {
+      if (this.state.isValid) {
         this.props.onAnswer();
       } else {
         this.setState({showErrors: true});
@@ -95,13 +98,13 @@ var FormComponents = {
       );
       /* jshint ignore:end */
     }
-  }),
+  });
 
 
   /**
    * An <input> with validation states.
    */
-  ReInput: React.createClass({
+  module.ReInput = React.createClass({
 
     propTypes: {
       re: React.PropTypes.object,
@@ -109,14 +112,17 @@ var FormComponents = {
       required: React.PropTypes.bool,
       placeholder: React.PropTypes.string,
       type: React.PropTypes.string,
-      className: React.PropTypes.string
+      className: React.PropTypes.string,
+      onValidityChange: React.PropTypes.func
     },
 
-    /** Read value, validate, notify parent element. */
+    /** Read value, validate, notify parent element if an event is attached. */
     handleChange: function(e) {
       var isValid = this.validator.test(e.target.value);
-      this.props.onValidityChange(isValid);
       this.setState({value: e.target.value, isValid: isValid, isDirty: true});
+
+      if ($.isFunction(this.props.onValidityChange))
+        this.props.onValidityChange(isValid);
     },
 
     value: function(value) {
@@ -162,9 +168,10 @@ var FormComponents = {
 
     getDefaultProps: function() {
       return {
-        re: /^\s*\d+\s*$/,
+        re: /^\s*-?\d+\s*$/,
         showError: false,
-        required: true
+        required: true,
+        className: ""
       };
     },
 
@@ -195,8 +202,98 @@ var FormComponents = {
       );
       /* jshint ignore:end */
     }
-  })
-};
+  });
+
+  /**
+   * A number input with two buttons for incrementing and decrementing.
+   */
+  module.NumInput = React.createClass({
+
+    propTypes: {
+      step: React.PropTypes.number,
+      placeholder: React.PropTypes.string,
+      btnClass: React.PropTypes.string,
+      onValidityChange: React.PropTypes.func
+    },
+
+    setValueAndValidity: function(value, isValid) {
+      this.setState({
+        value: value, isValid: isValid
+      });
+      if ($.isFunction(this.props.onValidityChange))
+        this.props.onValidityChange(isValid);
+    },
+
+    reset: function() {
+      this.setValueAndValidity(0, true);
+    },
+
+    handleDecrement: function(e) {
+      e.preventDefault();
+      this.setValueAndValidity(this.value() - this.props.step, true);
+    },
+
+    handleIncrement: function(e) {
+      e.preventDefault();
+      this.setValueAndValidity(this.value() + this.props.step, true);
+    },
+
+    /** Reset state to input value if input value is a number. */
+    handleChange: function(e) {
+      var val = e.target.value;
+      var isValid = !isNaN(parseFloat(val));
+      this.setValueAndValidity(val, isValid);
+    },
+
+    value: function() {
+      return parseFloat(this.state.value) || 0;
+    },
+
+    getInitialState: function() {
+      return {
+        value: null,
+        isValid: true
+      };
+    },
+
+    getDefaultProps: function() {
+      return {
+        step: 1
+      };
+    },
+
+    render: function() {
+      /* jshint ignore:start */
+      var ReInput = module.ReInput;
+      var btnClass = this.props.btnClass || "btn btn-lg btn-primary";
+      var validationState = this.state.isValid ? "has-success" : "has-error";
+
+      return (
+        <div className={"form-group " + validationState}>
+          <div className="row">
+            <div className="col-sm-3 col-xs-3">
+              <button className={btnClass + " pull-right"} onClick={this.handleDecrement}>
+                <span className="glyphicon glyphicon-chevron-left"/>
+              </button>
+            </div>
+            <div className="col-sm-6 col-xs-6">
+              <input type="number" value={this.state.value} onChange={this.handleChange}
+              className="form-control text-center" placeholder={this.props.placeholder}/>
+            </div>
+            <div className="col-sm-3 col-xs-3">
+              <button className={btnClass + " pull-left"} onClick={this.handleIncrement}>
+                <span className="glyphicon glyphicon-chevron-right"/>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+      /* jshint ignore:end */
+    }
+  });
+
+  return module;
+})();
 
 
 module.exports = FormComponents;

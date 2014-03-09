@@ -5,7 +5,7 @@
 
 var FormComponents = require("./form-components");
 var AnswerForm = FormComponents.AnswerForm;
-var ReInput = FormComponents.ReInput;
+var NumInput = FormComponents.NumInput;
 
 
 /**
@@ -33,17 +33,14 @@ var Forms = {
 
     reset: function() {
       this.refs.form.reset();
-      this.refs.x.reset();
-      this.refs.y.reset();
-      this.refs.x.select();
     },
 
     render: function() {
       /* jshint ignore:start */
       return (
         <AnswerForm ref="form" className="form-horizontal" onAnswer={this.handleAnswer}>
-          <ReInput ref="x" type="number" placeholder="x"/>
-          <ReInput ref="y" type="number" placeholder="y"/>
+          <NumInput ref="x" placeholder="x"/>
+          <NumInput ref="y" placeholder="y"/>
         </AnswerForm>
       );
       /* jshint ignore:end */
