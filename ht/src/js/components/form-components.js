@@ -11,12 +11,12 @@ var Mixins = require("./mixins");
  */
 var FormComponents = (function(){
 
-  var module = {};
+  var my = {};
 
   /**
    * A form that disables submitting when contents are invalid.
    */
-  module.AnswerForm = React.createClass({
+  my.AnswerForm = React.createClass({
 
     propTypes: {
       onAnswer: React.PropTypes.func.isRequired,
@@ -64,7 +64,7 @@ var FormComponents = (function(){
     getDefaultProps: function() {
       return {
         formClass: "form-horizontal",
-        btnClass: "btn btn-primary btn-block",
+        btnClass: "btn btn-success btn-lg btn-block",
         btnCorrectAnimClass: "animated bounce",
         btnIncorrectAnimClass: "animated shake"
       };
@@ -104,7 +104,7 @@ var FormComponents = (function(){
   /**
    * An <input> with validation states.
    */
-  module.ReInput = React.createClass({
+  my.ReInput = React.createClass({
 
     propTypes: {
       re: React.PropTypes.object,
@@ -207,7 +207,7 @@ var FormComponents = (function(){
   /**
    * A number input with two buttons for incrementing and decrementing.
    */
-  module.NumInput = React.createClass({
+  my.NumInput = React.createClass({
 
     propTypes: {
       step: React.PropTypes.number,
@@ -264,8 +264,8 @@ var FormComponents = (function(){
 
     render: function() {
       /* jshint ignore:start */
-      var ReInput = module.ReInput;
-      var btnClass = this.props.btnClass || "btn btn-lg btn-primary";
+      var ReInput = my.ReInput;
+      var btnClass = this.props.btnClass || "btn btn-lg btn-info";
       var validationState = this.state.isValid ? "has-success" : "has-error";
 
       return (
@@ -278,7 +278,7 @@ var FormComponents = (function(){
             </div>
             <div className="col-sm-6 col-xs-6">
               <input type="number" value={this.state.value} onChange={this.handleChange}
-              className="form-control text-center" placeholder={this.props.placeholder}/>
+              className="form-control input-lg text-center" placeholder={this.props.placeholder}/>
             </div>
             <div className="col-sm-3 col-xs-3">
               <button className={btnClass + " pull-left"} onClick={this.handleIncrement}>
@@ -292,7 +292,7 @@ var FormComponents = (function(){
     }
   });
 
-  return module;
+  return my;
 })();
 
 
