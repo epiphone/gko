@@ -4,6 +4,7 @@
   -webkit-animation-iteration-count: infinite;
 }
 
+/* Styles common for all tasks. */
 .task-container .task-header {
   background-color: #307DBE;
   color: #EEE;
@@ -32,7 +33,7 @@
   padding: 30px;
 }
 
-/*Coordinate system*/
+/* Coordinate system. */
 .task-container .coords-container {
   height: 100%;
 }

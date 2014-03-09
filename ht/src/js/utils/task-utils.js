@@ -1,10 +1,10 @@
 "use strict";
+/* global module */
 
 /**
- * Utility functions for creating math tasks.
+ * Utility functions (mainly maths related) for tasks.
  */
-var TaskUtils = (function() {
-    var TaskUtils = {};
+var TaskUtils = {
 
     /**
      * Generate a random integer in range [min, max[.
@@ -13,7 +13,7 @@ var TaskUtils = (function() {
      * @param  {number=} count If set, return a list of random values.
      * @return {(number|[number])} A single or multiple random ints.
      */
-    TaskUtils.randRange = function(min, max, count) {
+    randRange: function(min, max, count) {
         if (count && count > 0) {
             var rands = [];
             for (var i = 0; i < count; i++) {
@@ -22,7 +22,7 @@ var TaskUtils = (function() {
             return rands;
         }
         return Math.floor(Math.random() * (max - min)) + min;
-    };
+    },
 
 
     /**
@@ -31,7 +31,7 @@ var TaskUtils = (function() {
      * @param  {number=} count If set, return a list of random values.
      * @return {number|[number]} A single or multiple random ints.
      */
-    TaskUtils.rand = function(max, count) {
+    rand: function(max, count) {
         if (count && count > 0) {
             var rands = [];
             for (var i = 0; i < count; i++) {
@@ -40,10 +40,11 @@ var TaskUtils = (function() {
             return rands;
         }
         return Math.floor(Math.random() * max);
-    };
+    },
+
 
     /** Reorders given array randomly, doesn't modify original array. */
-    TaskUtils.shuffle = function(arr) {
+    shuffle: function(arr) {
         var clone = arr.slice();
         var shuffled = [];
 
@@ -53,7 +54,8 @@ var TaskUtils = (function() {
         }
 
         return shuffled;
-    };
+    },
+
 
     /**
      * Generate a range of integers.
@@ -62,7 +64,7 @@ var TaskUtils = (function() {
      * @param {number=} step Optional increment value, defaults to 1.
      * @return {[number]}    The specified range of numbers in an array.
      */
-    TaskUtils.range = function(min, max, step) {
+    range: function(min, max, step) {
         step = step || 1;
         var res = [];
         if (step > 0) {
@@ -76,7 +78,8 @@ var TaskUtils = (function() {
         }
 
         return res;
-    };
+    },
+
 
     /**
      * Check whether arrays equal.
@@ -84,14 +87,15 @@ var TaskUtils = (function() {
      * @param  arr2
      * @return {boolean}
      */
-    TaskUtils.arraysEqual = function(arr1, arr2) {
+    arraysEqual: function(arr1, arr2) {
         if (arr1.length !== arr2.length)
             return false;
 
         return arr1.every(function(d, i) {
             return d === arr2[i];
         });
-    };
+    },
+
 
     /**
      * Translate an array of points by given x and y values.
@@ -100,21 +104,22 @@ var TaskUtils = (function() {
      * @param  {number}     y
      * @return {[[number]]}
      */
-    TaskUtils.translate = function(points, x, y) {
+    translate: function(points, x, y) {
         return points.map(function(point) {
             return [point[0] + x, point[1] + y];
         });
-    };
+    },
+
 
     /**
-     * Compare given answer to the correct solution.
+     * Compare given answer to the correct solution. Supports various data types.
      *
      * @param answer
      * @param solution A string, number, array, object or RegExp.
      * @param epsilon  Optional max error value for float comparison, default is 0.001.
      * @return {boolean} True if correct, otherwise false.
      */
-    TaskUtils.matchesSolution = function(answer, solution, epsilon) {
+    matchesSolution: function(answer, solution, epsilon) {
         if (typeof answer === "string") {
             answer = answer.trim();
         }
@@ -156,7 +161,7 @@ var TaskUtils = (function() {
         }
 
         return answer === solution;
-    };
+    }
+};
 
-    return TaskUtils;
-})();
+module.exports = TaskUtils;

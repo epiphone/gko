@@ -1,6 +1,10 @@
 /** @jsx React.DOM */
-/* global React, d3, TaskUtils */
+/* global React, d3, module, require */
 "use strict";
+
+var TaskUtils = require("../utils/task-utils.js");
+var TaskComponents = require("../components/task-components.js");
+var Coords = require("../components/coords.js");
 
 /**
  * Click the appropriate shape in a coordinate system.
@@ -99,6 +103,10 @@ var BasicShapesTask = React.createClass({
 
   render: function() {
     /* jshint ignore:start */
+    var TaskPanel = TaskComponents.TaskPanel;
+    var TaskHeader = TaskComponents.TaskHeader;
+    var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
+
     var shapes = this.state.shapes;
     var taskIsDone = this.state.step > parseInt(this.props.steps);
     var coords, sidebar;
@@ -143,7 +151,7 @@ var BasicShapesTask = React.createClass({
     }
 
     return (
-      <div className="task-container">
+      <div>
         <TaskHeader name="Kappaleiden tunnistaminen" step={this.state.step} steps={this.props.steps} />
         <div className="row">
           <div className="col-sm-6 question">
@@ -159,3 +167,5 @@ var BasicShapesTask = React.createClass({
     /* jshint ignore:end */
   }
 });
+
+module.exports = BasicShapesTask;

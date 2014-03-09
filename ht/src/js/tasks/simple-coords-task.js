@@ -1,10 +1,15 @@
 /** @jsx React.DOM */
-/* global React, TaskUtils */
+/* global React, require, module */
 "use strict";
 
+var TaskUtils = require("../utils/task-utils");
+var TaskComponents = require("../components/task-components");
+var Coords = require("../components/coords");
+var Forms = require("../components/forms");
+
+
 /**
- * An example task where the aim is to read values from a
- * coordinate system.
+ * Read positions from a coordinate system.
  */
 var SimpleCoordsTask = React.createClass({
 
@@ -57,6 +62,11 @@ var SimpleCoordsTask = React.createClass({
 
   render: function() {
     /* jshint ignore:start */
+    var TaskPanel = TaskComponents.TaskPanel;
+    var TaskHeader = TaskComponents.TaskHeader;
+    var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
+    var CoordsAnswerForm = Forms.CoordsAnswerForm;
+
     var point = this.state.point;
     var taskIsDone = this.state.step > parseInt(this.props.steps);
     var coords, sidebar;
@@ -83,7 +93,7 @@ var SimpleCoordsTask = React.createClass({
     }
 
     return (
-      <div className="task-container">
+      <div>
         <TaskHeader name="Koordinaatiston lukeminen" step={this.state.step} steps={this.props.steps} />
         <div className="row">
           <div className="col-sm-6 question">
@@ -99,3 +109,5 @@ var SimpleCoordsTask = React.createClass({
     /* jshint ignore:end */
   }
 });
+
+module.exports = SimpleCoordsTask;

@@ -1,10 +1,6 @@
 /** @jsx React.DOM */
-/* global React, TaskUtils */
+/* global React, module */
 "use strict";
-
-/**
- * Utility components and mixins (component extensions).
- */
 
 
 /**
@@ -116,48 +112,9 @@ var TaskDoneDisplay = React.createClass({
   }
 });
 
-
-/**
- * Provides a setTimeout function which will get cleaned up when
- * the component is destroyed.
- */
-var SetTimeoutMixin = {
-  setInterval: function() {
-    this.intervals.push(setInterval.apply(null, arguments));
-  },
-
-  clearAllIntervals: function() {
-    this.intervals.map(clearInterval);
-    this.intervals = [];
-  },
-
-  /** Invoked when component is initialized. */
-  componentWillMount: function() {
-    this.intervals = [];
-  },
-
-  /** Invoked when component is destroyed. */
-  componentWillUnmount: function() {
-    this.clearAllIntervals();
-  }
-};
-
-/**
- * Apply CSS classes for set duration, useful for singleshot animations.
- */
-var TriggerAnimationMixin = {
-  animate: function(elem, className, duration) {
-    duration = duration || 1000;
-    if (!this.timeout && this.timeout !== 0) {
-      elem.addClass(className);
-      this.timeout = setTimeout(function() {
-        elem.removeClass(className);
-        this.timeout = null;
-      }.bind(this), duration);
-    }
-  },
-
-  componentWillUnmount: function() {
-    clearTimeout(this.timeout);
-  }
+module.exports = {
+  TaskPanel: TaskPanel,
+  TaskProgressBar: TaskProgressBar,
+  TaskHeader: TaskHeader,
+  TaskDoneDisplay: TaskDoneDisplay
 };

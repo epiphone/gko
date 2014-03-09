@@ -1,8 +1,9 @@
 /** @jsx React.DOM */
-/* global React, d3, MathUtils */
+/* global React, d3, MathUtils, module */
 "use strict";
 
 
+/** A 2D coordinate system. */
 var Coords = React.createClass({
 
   propTypes: {
@@ -187,7 +188,7 @@ var Shapes = React.createClass({
     transitionDuration: React.PropTypes.number
   },
 
-  /** Redraw shapes. */
+  /** Redraw shapes. Gets called whenever shapes are updated or screen resizes. */
   update: function(props) {
     var container = d3.select(this.getDOMNode());
     var transitionDuration = props.transitionDuration || 550;
@@ -195,11 +196,7 @@ var Shapes = React.createClass({
     var polygons = container.selectAll("polygon.shape")
       .data(props.data.filter(function(s) { return s.points.length > 2; }));
 
-    polygons.enter().append("polygon").attr("class", "shape")
-      .on("click", function(d) {
-        if ($.isFunction(d.onClick))
-          d.onClick(d);
-      });
+    var addedPolygons = polygons.enter().append("polygon").attr("class", "shape");
 
     polygons.transition().duration(transitionDuration)
       .attr("points", function(d) {
@@ -214,7 +211,7 @@ var Shapes = React.createClass({
     var circles = container.selectAll("circle.shape")
       .data(props.data.filter(function(s) { return s.points.length == 1; }));
 
-    circles.enter().append("circle").attr("class", "shape");
+    var addedCircles = circles.enter().append("circle").attr("class", "shape");
 
     circles.transition().duration(transitionDuration)
       .attr("cx", function(d) { return props.x(d.points[0][0]); })
@@ -227,7 +224,7 @@ var Shapes = React.createClass({
     var lines = container.selectAll("line.shape")
       .data(props.data.filter(function(s) { return s.points.length == 2; }));
 
-    lines.enter().append("line").attr("class", "shape");
+    var addedLines = lines.enter().append("line").attr("class", "shape");
 
     lines.transition().duration(transitionDuration)
       .attr("x1", function(d) { return props.x(d.points[0][0]); })
@@ -237,7 +234,15 @@ var Shapes = React.createClass({
 
     lines.exit().remove();
 
+    // Attach click event listeners.
+    [addedPolygons, addedCircles, addedLines].forEach(function(added) {
+      added.on("click", function(d) {
+        if ($.isFunction(d.onClick))
+          d.onClick(d);
+      });
+    });
 
+    // Set common attributes.
     container.selectAll(".shape")
       .attr("fill", function(d) { return d.fill || "transparent"; })
       .attr("stroke", function(d) { return d.stroke || "steelblue"; })
@@ -259,3 +264,5 @@ var Shapes = React.createClass({
     /* jshint ignore:end */
   }
 });
+
+module.exports = Coords;
