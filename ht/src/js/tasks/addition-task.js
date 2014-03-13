@@ -8,16 +8,54 @@
  */
 var AdditionTask = (function() {
 
-  var MathComponents = require("../components/math-components.js");
-  var TaskComponents = require("../components/task-components.js");
+  var TaskUtils = require("../utils/task-utils");
+  var SingleNumberForm = require("../components/forms").SingleNumberForm;
+  var MathComponents = require("../components/math-components");
+  var TaskComponents = require("../components/task-components");
 
 
   var additionTask = React.createClass({
 
-    handleInputChange: function(e) {
+    propTypes: {
+      steps: React.PropTypes.number.isRequired,
+      onTaskDone: React.PropTypes.func.isRequired
+    },
+
+    /** Reset the question. */
+    reset: function() {
+      var a, b;
+      do {
+        a = TaskUtils.randRange(1, 11);
+        b = TaskUtils.randRange(1, 11);
+      }
+      while (TaskUtils.matchesSolution([a,b], [this.state.a, this.state.b]));
       this.setState({
-        formula: e.target.value
+        a: a,
+        b: b,
+        answer: a + b
       });
+    },
+
+    /** Check if correct. */
+    handleAnswer: function(answer) {
+      var isCorrect = TaskUtils.matchesSolution(answer, this.state.answer);
+      if (isCorrect)
+        this.handleCorrectAnswer();
+
+      return isCorrect;
+    },
+
+    handleCorrectAnswer: function() {
+      var step = this.state.step;
+      if (step === parseInt(this.props.steps))
+        this.props.onTaskDone();
+      else
+        this.reset();
+        this.setState({step: step + 1});
+    },
+
+    componentDidMount: function() {
+      this.reset();
     },
 
     getInitialState: function() {
@@ -32,12 +70,22 @@ var AdditionTask = (function() {
       var TaskPanel = TaskComponents.TaskPanel;
       var TaskHeader = TaskComponents.TaskHeader;
       var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
+      var MathJax = MathComponents.MathJax;
 
       var taskIsDone = this.state.step > parseInt(this.props.steps);
       var question, sidebar;
 
       if (!taskIsDone) {
-        question = <div>Kysymys</div>;
+        console.log("rendering", this.state.a, this.state.b);
+
+        var questionContent = this.state.a + " + " + this.state.b + " = ?";
+        question = (
+          <div className="text-center bg-warning">
+            <h1>
+              <MathJax>{questionContent}</MathJax>
+            </h1>
+          </div>
+        );
 
         sidebar = (
           <div>
@@ -45,7 +93,7 @@ var AdditionTask = (function() {
               <span>Mikä on yhteenlaskun tulos?</span>
             </TaskPanel>
             <TaskPanel header="Vastaus" className="panel-success panel-extra-padding">
-              vastauslomake tähän
+              <SingleNumberForm onAnswer={this.handleAnswer} />
             </TaskPanel>
           </div>
         );

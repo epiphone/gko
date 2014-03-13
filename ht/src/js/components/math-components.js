@@ -1,5 +1,5 @@
 /** @jsx React.DOM */
-/* global React, require, module, MathJax */
+/* global React, module, MathJax */
 "use strict";
 
 
@@ -16,7 +16,7 @@ var MathComponents = (function() {
   mathComponents.MathJax = React.createClass({
     reprocess: function() {
       var elem = this.refs.script.getDOMNode();
-      console.log(elem);
+      console.log("reprocessing", $(elem).text());
       MathJax.Hub.Queue(["Reprocess", MathJax.Hub, elem]);
     },
 
@@ -24,7 +24,7 @@ var MathComponents = (function() {
       this.reprocess();
     },
 
-    componentWillReceiveProps: function() {
+    componentDidUpdate: function() {
       this.reprocess();
     },
 

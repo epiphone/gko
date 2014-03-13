@@ -2,112 +2,113 @@
 /* global React, require, module */
 "use strict";
 
-var TaskUtils = require("../utils/task-utils");
-var TaskComponents = require("../components/task-components");
-var Coords = require("../components/coords");
-var Forms = require("../components/forms");
-
 
 /**
  * Read positions from a coordinate system.
  */
-var SimpleCoordsTask = React.createClass({
+var SimpleCoordsTask = (function() {
 
-  propTypes: {
-    steps: React.PropTypes.number.isRequired,
-    onTaskDone: React.PropTypes.func.isRequired
-  },
+  var TaskUtils = require("../utils/task-utils");
+  var TaskComponents = require("../components/task-components");
+  var Coords = require("../components/coords");
+  var Forms = require("../components/forms");
 
-  /** Reset the question, i.e. generate a new random point. */
-  reset: function() {
-    var newPoint;
-    do { newPoint = [TaskUtils.randRange(0, 10), TaskUtils.randRange(0, 10)]; }
-    while (TaskUtils.matchesSolution(newPoint, this.state.point));
 
-    this.setState({point: newPoint});
-  },
+  var simpleCoordsTask = React.createClass({
+    propTypes: {
+      steps: React.PropTypes.number.isRequired,
+      onTaskDone: React.PropTypes.func.isRequired
+    },
 
-  /** Check if correct. */
-  handleAnswer: function(x, y) {
-    var isCorrect = TaskUtils.matchesSolution([x, y], this.state.point);
-    if (isCorrect)
-      this.handleCorrectAnswer();
+    /** Reset the question, i.e. generate a new random point. */
+    reset: function() {
+      var newPoint;
+      do { newPoint = [TaskUtils.randRange(0, 10), TaskUtils.randRange(0, 10)]; }
+      while (TaskUtils.matchesSolution(newPoint, this.state.point));
 
-    return isCorrect;
-  },
+      this.setState({point: newPoint});
+    },
 
-  handleCorrectAnswer: function() {
-    var step = this.state.step;
-    if (step === parseInt(this.props.steps))
-      this.handleTaskDone();
-    else
+    /** Check if correct. */
+    handleAnswer: function(x, y) {
+      var isCorrect = TaskUtils.matchesSolution([x, y], this.state.point);
+      if (isCorrect)
+        this.handleCorrectAnswer();
+
+      return isCorrect;
+    },
+
+    handleCorrectAnswer: function() {
+      var step = this.state.step;
+      if (step === parseInt(this.props.steps))
+        this.props.onTaskDone();
+      else
+        this.reset();
+        this.setState({step: step + 1});
+    },
+
+    componentDidMount: function() {
       this.reset();
-      this.setState({step: step + 1});
-  },
+    },
 
-  handleTaskDone: function() {
-    this.props.onTaskDone();
-  },
+    getInitialState: function() {
+      return {
+        step: 1,
+        point: null
+      };
+    },
 
-  componentDidMount: function() {
-    this.reset();
-  },
+    render: function() {
+      /* jshint ignore:start */
+      var TaskPanel = TaskComponents.TaskPanel;
+      var TaskHeader = TaskComponents.TaskHeader;
+      var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
+      var CoordsAnswerForm = Forms.CoordsAnswerForm;
 
-  getInitialState: function() {
-    return {
-      step: 1,
-      point: null
-    };
-  },
+      var point = this.state.point;
+      var taskIsDone = this.state.step > parseInt(this.props.steps);
+      var coords, sidebar;
 
-  render: function() {
-    /* jshint ignore:start */
-    var TaskPanel = TaskComponents.TaskPanel;
-    var TaskHeader = TaskComponents.TaskHeader;
-    var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
-    var CoordsAnswerForm = Forms.CoordsAnswerForm;
+      if (point && !taskIsDone) {
+        var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
+        var shapes = [{points: [point], r:0.2, strokeWidth: 3, stroke: "#FF5B24", fill:"#FD0000"}];
 
-    var point = this.state.point;
-    var taskIsDone = this.state.step > parseInt(this.props.steps);
-    var coords, sidebar;
+        coords = <Coords shapes={shapes} bounds={bounds} aspect={1} />;
 
-    if (point && !taskIsDone) {
-      var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
-      var shapes = [{points: [point], r:0.2, strokeWidth: 3, stroke: "#FF5B24", fill:"#FD0000"}];
+        sidebar = (
+          <div>
+            <TaskPanel header="Ohjeet">
+              <span>Mitkä ovat pisteen x-ja y-koordinaatit?</span>
+            </TaskPanel>
+            <TaskPanel header="Vastaus" className="panel-success panel-extra-padding">
+              <CoordsAnswerForm ref="form" onAnswer={this.handleAnswer} />
+            </TaskPanel>
+          </div>
+        );
+      }
+      else if (taskIsDone) {
+        coords = <TaskDoneDisplay score={10}/>;
+      }
 
-      coords = <Coords shapes={shapes} bounds={bounds} aspect={1} />;
-
-      sidebar = (
+      return (
         <div>
-          <TaskPanel header="Ohjeet">
-            <span>Mitkä ovat pisteen x-ja y-koordinaatit?</span>
-          </TaskPanel>
-          <TaskPanel header="Vastaus" className="panel-success panel-extra-padding">
-            <CoordsAnswerForm ref="form" onAnswer={this.handleAnswer} />
-          </TaskPanel>
+          <TaskHeader name="Koordinaatiston lukeminen" step={this.state.step} steps={this.props.steps} />
+          <div className="row">
+            <div className="col-sm-6 question">
+              {coords}
+            </div>
+
+            <div className="col-sm-5 col-sm-offset-1">
+              {sidebar}
+            </div>
+          </div>
         </div>
       );
+      /* jshint ignore:end */
     }
-    else if (taskIsDone) {
-      coords = <TaskDoneDisplay score={10}/>;
-    }
+  });
 
-    return (
-      <div>
-        <TaskHeader name="Koordinaatiston lukeminen" step={this.state.step} steps={this.props.steps} />
-        <div className="row">
-          <div className="col-sm-6 question">
-            {coords}
-          </div>
-
-          <div className="col-sm-5 col-sm-offset-1">
-            {sidebar}
-          </div>
-        </div>
-      </div>
-    );
-    /* jshint ignore:end */
-  }
-});
+  return simpleCoordsTask;
+})();
 
 module.exports = SimpleCoordsTask;

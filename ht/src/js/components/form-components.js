@@ -13,7 +13,7 @@ var FormComponents = (function(){
   var formComponents = {};
 
   /**
-   * A form that disables submitting when contents are invalid.
+   * A form that disables submitting when inputs are invalid.
    */
   formComponents.AnswerForm = React.createClass({
 
@@ -81,7 +81,7 @@ var FormComponents = (function(){
 
     render: function() {
       /* jshint ignore:start */
-      var children = this.props.children.map(function(child) {
+      var children = [].concat(this.props.children).map(function(child) {
         child.props.onValidityChange = this.setValidity;
         child.props.onSubmit = this.handleSubmit;
         child.props.showError = this.state.showErrors;
@@ -104,7 +104,7 @@ var FormComponents = (function(){
 
 
   /**
-   * An <input> with validation states.
+   * An input with regular expression validation.
    */
   formComponents.ReInput = React.createClass({
 
@@ -228,7 +228,7 @@ var FormComponents = (function(){
     },
 
     reset: function() {
-      this.setValueAndValidity(0, true);
+      this.setValueAndValidity("", true);
     },
 
     handleDecrement: function(e) {

@@ -30,7 +30,7 @@ var Application = React.createClass({
   render: function() {
     /* jshint ignore:start */
     var tasks = {
-      "Yhteenlasku": <AdditionTask onTaskDone={this.handleTaskDone}/>,
+      "Yhteenlasku": <AdditionTask onTaskDone={this.handleTaskDone} steps={5}/>,
       "Koordinaatiston lukeminen": <SimpleCoordsTask onTaskDone={this.handleTaskDone} steps={5}/>,
       "Kappaleiden tunnistaminen": <BasicShapesTask onTaskDone={this.handleTaskDone}/>
     };
