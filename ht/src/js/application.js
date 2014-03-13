@@ -3,6 +3,7 @@
 /* globals React, require, module */
 
 
+var AdditionTask = require("./tasks/addition-task");
 var SimpleCoordsTask = require("./tasks/simple-coords-task");
 var BasicShapesTask = require("./tasks/basic-shapes-task");
 
@@ -23,20 +24,22 @@ var Application = React.createClass({
   },
 
   getInitialState: function() {
-    return {selectedTask: "Koordinaatiston lukeminen"};
+    return {selectedTask: "Yhteenlasku"};
   },
 
   render: function() {
     /* jshint ignore:start */
     var tasks = {
-      "Koordinaatiston lukeminen": (<SimpleCoordsTask onTaskDone={this.handleTaskDone} steps={5}/>),
-      "Kappaleiden tunnistaminen": (<BasicShapesTask onTaskDone={this.handleTaskDone}/>)
+      "Yhteenlasku": <AdditionTask onTaskDone={this.handleTaskDone}/>,
+      "Koordinaatiston lukeminen": <SimpleCoordsTask onTaskDone={this.handleTaskDone} steps={5}/>,
+      "Kappaleiden tunnistaminen": <BasicShapesTask onTaskDone={this.handleTaskDone}/>
     };
 
     var taskListElems = Object.keys(tasks).map(function(taskName) {
+      var className = taskName === this.state.selectedTask ? "text-muted" : "";
       return (
         <li>
-          <a href="" onClick={this.handleListClick}>{taskName}</a>
+          <a className={className} href="" onClick={this.handleListClick}>{taskName}</a>
         </li>
       );
     }.bind(this));

@@ -3,19 +3,21 @@
 "use strict";
 
 
-var FormComponents = require("./form-components");
-var AnswerForm = FormComponents.AnswerForm;
-var NumInput = FormComponents.NumInput;
-
-
 /**
  * Complete answer forms for tasks.
  */
-var Forms = {
+var Forms = (function() {
+
+  var FormComponents = require("./form-components");
+  var AnswerForm = FormComponents.AnswerForm;
+  var NumInput = FormComponents.NumInput;
+
+  var my = {};
+
   /**
    * An answer form with inputs for x and y coordinates.
    */
-  CoordsAnswerForm: React.createClass({
+  my.CoordsAnswerForm = React.createClass({
 
     propTypes: {
       onAnswer: React.PropTypes.func.isRequired
@@ -45,8 +47,10 @@ var Forms = {
       );
       /* jshint ignore:end */
     }
-  })
-};
+  });
+
+  return my;
+})();
 
 
 module.exports = Forms;

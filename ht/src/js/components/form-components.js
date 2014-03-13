@@ -3,20 +3,19 @@
 "use strict";
 
 
-var Mixins = require("./mixins");
-
-
 /**
  * Various common form components.
  */
 var FormComponents = (function(){
 
-  var my = {};
+  var Mixins = require("./mixins");
+
+  var formComponents = {};
 
   /**
    * A form that disables submitting when contents are invalid.
    */
-  my.AnswerForm = React.createClass({
+  formComponents.AnswerForm = React.createClass({
 
     propTypes: {
       onAnswer: React.PropTypes.func.isRequired,
@@ -30,7 +29,9 @@ var FormComponents = (function(){
 
     /** Submit answer if form is valid. */
     handleSubmit: function(e) {
-      e.preventDefault();
+      if (e)
+        e.preventDefault();
+
       if (this.state.isValid) {
         this.props.onAnswer();
       } else {
@@ -82,6 +83,7 @@ var FormComponents = (function(){
       /* jshint ignore:start */
       var children = this.props.children.map(function(child) {
         child.props.onValidityChange = this.setValidity;
+        child.props.onSubmit = this.handleSubmit;
         child.props.showError = this.state.showErrors;
         return child;
       }.bind(this));
@@ -104,7 +106,7 @@ var FormComponents = (function(){
   /**
    * An <input> with validation states.
    */
-  my.ReInput = React.createClass({
+  formComponents.ReInput = React.createClass({
 
     propTypes: {
       re: React.PropTypes.object,
@@ -207,13 +209,14 @@ var FormComponents = (function(){
   /**
    * A number input with two buttons for incrementing and decrementing.
    */
-  my.NumInput = React.createClass({
+  formComponents.NumInput = React.createClass({
 
     propTypes: {
       step: React.PropTypes.number,
       placeholder: React.PropTypes.string,
       btnClass: React.PropTypes.string,
-      onValidityChange: React.PropTypes.func
+      onValidityChange: React.PropTypes.func,
+      onSubmit: React.PropTypes.func
     },
 
     setValueAndValidity: function(value, isValid) {
@@ -245,6 +248,15 @@ var FormComponents = (function(){
       this.setValueAndValidity(val, isValid);
     },
 
+    /** Try to submit parent form when Enter is clicked. */
+    handleKeyPress: function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (this.props.onSubmit)
+          this.props.onSubmit();
+      }
+    },
+
     value: function() {
       return parseFloat(this.state.value) || 0;
     },
@@ -264,7 +276,7 @@ var FormComponents = (function(){
 
     render: function() {
       /* jshint ignore:start */
-      var ReInput = my.ReInput;
+      var ReInput = formComponents.ReInput;
       var btnClass = this.props.btnClass || "btn btn-lg btn-info";
       var validationState = this.state.isValid ? "has-success" : "has-error";
 
@@ -272,16 +284,16 @@ var FormComponents = (function(){
         <div className={"form-group " + validationState}>
           <div className="row">
             <div className="col-sm-3 col-xs-3">
-              <button className={btnClass + " pull-right"} onClick={this.handleDecrement}>
+              <button tabIndex="-1" className={btnClass + " pull-right"} onClick={this.handleDecrement}>
                 <span className="glyphicon glyphicon-chevron-left"/>
               </button>
             </div>
             <div className="col-sm-6 col-xs-6">
-              <input type="number" value={this.state.value} onChange={this.handleChange}
+              <input type="number" value={this.state.value} onChange={this.handleChange} onKeyPress={this.handleKeyPress}
               className="form-control input-lg text-center" placeholder={this.props.placeholder}/>
             </div>
             <div className="col-sm-3 col-xs-3">
-              <button className={btnClass + " pull-left"} onClick={this.handleIncrement}>
+              <button tabIndex="-1" className={btnClass + " pull-left"} onClick={this.handleIncrement}>
                 <span className="glyphicon glyphicon-chevron-right"/>
               </button>
             </div>
@@ -292,7 +304,7 @@ var FormComponents = (function(){
     }
   });
 
-  return my;
+  return formComponents;
 })();
 
 
