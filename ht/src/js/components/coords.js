@@ -10,46 +10,16 @@ var Coords = React.createClass({
     drawAxes: React.PropTypes.bool,
     shapes: React.PropTypes.array,
     bounds: React.PropTypes.object,
-    aspect: React.PropTypes.number
+    margin: React.PropTypes.object,
+    aspect: React.PropTypes.number,
+    onClick: React.PropTypes.func
   },
 
   handleResize: function() {
     var parent = $(this.getDOMNode().parentNode);
-    this.setState({width: parent.width()});
-  },
 
-  getInitialState: function() {
-    return {width: 0};
-  },
-
-  getDefaultProps: function() {
-    return {
-      drawAxes: true,
-      shapes: [],
-      bounds: {maxY:10, maxX:10, minY:0, minX:0},
-      aspect: 1
-    };
-  },
-
-  componentDidMount: function() {
-    window.addEventListener("resize", this.handleResize);
-    this.handleResize();
-  },
-
-  componentWillUnmount: function() {
-    window.removeEventListener("resize", this.handleResize);
-  },
-
-  render: function() {
-    /* jshint ignore:start */
-    var margin = {
-      top: 10,
-      right: 10,
-      bottom: 10,
-      left: 10
-    };
-
-    var width = this.state.width ? this.state.width - margin.left - margin.right : 0;
+    var margin = this.props.margin;
+    var width = parent ? parent.width() - margin.left - margin.right : 0;
     var height = Math.round(width * this.props.aspect) - margin.top - margin.bottom;
 
     var bounds = this.props.bounds;
@@ -66,6 +36,63 @@ var Coords = React.createClass({
       .domain([bounds.minY, bounds.minY + 1])
       .range([height, height - spacing]);
 
+
+    this.setState({
+      width: width,
+      spacing: spacing,
+      x: x,
+      y: y
+    });
+  },
+
+  /** Translate and round screen position into coordinates, trigger event. */
+  handleSVGClick: function(event) {
+    if (!$.isFunction(this.props.onClick)) return;
+
+    var elem = $(this.refs.svg.getDOMNode());
+    var bounds = this.props.bounds;
+
+    var svgX = event.pageX - elem.offset().left - this.props.margin.left;
+    var svgY = event.pageY - elem.offset().top - this.props.margin.top;
+    var coordsX = Math.max(bounds.minX, Math.min(bounds.maxX, Math.round(this.state.x.invert(svgX))));
+    var coordsY = Math.max(bounds.minY, Math.min(bounds.maxY, Math.round(this.state.y.invert(svgY))));
+
+    this.props.onClick(coordsX, coordsY);
+  },
+
+  getInitialState: function() {
+    return {width: 0};
+  },
+
+  getDefaultProps: function() {
+    return {
+      drawAxes: true,
+      shapes: [],
+      bounds: {maxY:10, maxX:10, minY:0, minX:0},
+      aspect: 1,
+      margin: {top: 10, right: 10, bottom: 10, left: 10}
+    };
+  },
+
+  componentDidMount: function() {
+    window.addEventListener("resize", this.handleResize);
+    this.handleResize();
+  },
+
+  componentWillUnmount: function() {
+    window.removeEventListener("resize", this.handleResize);
+  },
+
+  render: function() {
+    /* jshint ignore:start */
+    var margin = this.props.margin;
+    var bounds = this.props.bounds;
+    var width = this.state.width;
+    var height = Math.round(width * this.props.aspect) - margin.top - margin.bottom;
+    var spacing = this.state.spacing;
+    var x = this.state.x;
+    var y = this.state.y;
+
     var fullWidth = width + margin.left + margin.right;
     var fullHeight = height + margin.top + margin.bottom;
     var transform = "translate(" + margin.left + "," + margin.top + ")";
@@ -78,7 +105,7 @@ var Coords = React.createClass({
 
     return (
       <div className="coords-container">
-        <svg width={fullWidth} height={fullHeight}>
+        <svg ref="svg" onClick={this.handleSVGClick} width={fullWidth} height={fullHeight}>
           <g transform={transform}>
             {grid}
             {shapes}

@@ -92,8 +92,6 @@ var TaskComponents = (function() {
         timeLeft: timeLeft
       });
 
-      console.log("timeLeft", this.state.timeLeft);
-
       if (timeLeft < 1) {
         this.clearAllIntervals();
         if ($.isFunction(this.props.onExpiry)) this.props.onExpiry();
