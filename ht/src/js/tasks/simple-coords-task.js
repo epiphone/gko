@@ -10,7 +10,7 @@ var SimpleCoordsTask = (function() {
 
   var TaskUtils = require("../utils/task-utils");
   var TaskComponents = require("../components/task-components");
-  var Coords = require("../components/coords");
+  var Coords = require("../components/coords-components").Coords;
   var Forms = require("../components/forms");
 
 
