@@ -16,7 +16,6 @@ var MathComponents = (function() {
   mathComponents.MathJax = React.createClass({
     reprocess: function() {
       var elem = this.refs.script.getDOMNode();
-      console.log("reprocessing", $(elem).text());
       MathJax.Hub.Queue(["Reprocess", MathJax.Hub, elem]);
     },
 

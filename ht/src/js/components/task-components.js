@@ -7,12 +7,14 @@
  */
 var TaskComponents = (function() {
 
-  var my = {};
+  var Mixins = require("./mixins");
+
+  var taskComponents = {};
 
   /**
    * A wrapper for Bootstrap's panel component.
    */
-  my.TaskPanel = React.createClass({
+  taskComponents.TaskPanel = React.createClass({
 
     propTypes: {
       className: React.PropTypes.string
@@ -39,7 +41,7 @@ var TaskComponents = (function() {
   /**
    * A wrapper for Bootstrap's progress bar element.
    */
-  my.TaskProgressBar = React.createClass({
+  taskComponents.TaskProgressBar = React.createClass({
     propTypes: {
       max: React.PropTypes.number.isRequired,
       now: React.PropTypes.number.isRequired
@@ -62,31 +64,91 @@ var TaskComponents = (function() {
   });
 
   /**
-   * Task header with task name and an optional step counter.
+   * A timer that counts down from a specified time and triggers an event
+   * when finished. Elapsed time is displayed in a progress bar.
    */
-  my.TaskHeader = React.createClass({
+  taskComponents.TaskCountdownTimer = React.createClass({
 
     propTypes: {
-      name: React.PropTypes.string.isRequired,
-      step: React.PropTypes.number,
-      steps: React.PropTypes.number
+      time: React.PropTypes.number.isRequired,
+      startOnMount: React.PropTypes.bool,
+      onExpiry: React.PropTypes.func
+    },
+
+    mixins: [Mixins.SetIntervalMixin],
+
+    startCountdown: function() {
+      this.setState({
+        timeLeft: this.props.time
+      });
+
+      this.setInterval(this.tick, 1000);
+    },
+
+    tick: function() {
+      var timeLeft = this.state.timeLeft - 1;
+
+      this.setState({
+        timeLeft: timeLeft
+      });
+
+      console.log("timeLeft", this.state.timeLeft);
+
+      if (timeLeft < 1) {
+        this.clearAllIntervals();
+        if ($.isFunction(this.props.onExpiry)) this.props.onExpiry();
+      }
+    },
+
+    componentDidMount: function() {
+      if (this.props.startOnMount) this.startCountdown();
+    },
+
+    getInitialState: function() {
+      return {
+        timeLeft: this.props.time
+      };
     },
 
     render: function() {
       /* jshint ignore:start */
-      var stepCounter;
-      if (this.props.step && this.props.steps) {
-        var TaskProgressBar = my.TaskProgressBar;
-        stepCounter = <TaskProgressBar max={this.props.steps} now={this.props.step}/>;
-      }
+      var singleWidth = Math.ceil(1 / this.props.time * 100);
+      var width = Math.ceil(1 / this.props.time * 100 * this.state.timeLeft);
+      var barStyle = {width: width + "%"};
 
+      var barClass = React.addons.classSet({
+        "progress-bar-success": width >= 40,
+        "progress-bar-warning": width < 40 && width > 20,
+        "progress-bar-danger": width <= 20,
+      });
+
+      return (
+        <div className="progress progress-striped active task-progress-bar">
+          <div className={"progress-bar " + barClass} style={barStyle}/>
+        </div>
+      );
+      /* jshint ignore:end */
+    }
+  });
+
+  /**
+   * Task header, displays task name.
+   */
+  taskComponents.TaskHeader = React.createClass({
+
+    propTypes: {
+      name: React.PropTypes.string.isRequired
+    },
+
+    render: function() {
+      /* jshint ignore:start */
       return (
         <div className="task-header row">
           <div className="col-sm-7">
             <h2>{this.props.name}</h2>
           </div>
           <div className="col-sm-5">
-            {stepCounter}
+            {this.props.children}
           </div>
         </div>
       );
@@ -98,7 +160,7 @@ var TaskComponents = (function() {
   /**
    * An element that is shown after a completed task.
    */
-  my.TaskDoneDisplay = React.createClass({
+  taskComponents.TaskDoneDisplay = React.createClass({
 
     propTypes: {
       score: React.PropTypes.number
@@ -119,7 +181,7 @@ var TaskComponents = (function() {
     }
   });
 
-  return my;
+  return taskComponents;
 })();
 
 

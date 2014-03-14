@@ -11,17 +11,16 @@ var BasicShapesTask = (function() {
   var TaskUtils = require("../utils/task-utils");
   var TaskComponents = require("../components/task-components");
   var Coords = require("../components/coords");
+  var Mixins = require("../components/mixins");
 
   var basicShapesTask = React.createClass({
 
     propTypes: {
-      onTaskDone: React.PropTypes.func.isRequired
+      onTaskDone: React.PropTypes.func.isRequired,
+      time: React.PropTypes.number.isRequired
     },
 
-    startGame: function() {
-      this.setState({isRunning: true, score: 0});
-      this.reset();
-    },
+    mixins: [Mixins.TriggerAnimationMixin, Mixins.SetTimeoutMixin],
 
     /**
      * Returns an array of six different shapes that fill the coords
@@ -78,6 +77,12 @@ var BasicShapesTask = (function() {
       });
     },
 
+    handleStartBtnClick: function() {
+      this.setState({isRunning: true, score: 0});
+      this.refs.timer.startCountdown();
+      this.reset();
+    },
+
     /** Check if correct shape and proceed. */
     handleShapeClick: function(shape) {
       var scoreIncrement;
@@ -87,8 +92,20 @@ var BasicShapesTask = (function() {
         scoreIncrement = -1;
       }
 
+      var elem = $(this.refs.score.getDOMNode());
+      var anim = scoreIncrement > 0 ? "pulse" : "shake";
+      this.animate(elem, anim, 1000);
+
+
       this.setState({score: Math.max(this.state.score + scoreIncrement, 0)});
       this.reset();
+    },
+
+    /** Task finishes (after a small timeout for smoothness) when timer expires. */
+    handleTimerExpiry: function() {
+      this.setTimeout(function() {
+        this.setState({ isFinished: true });
+      }.bind(this), 500);
     },
 
     getInitialState: function() {
@@ -105,22 +122,22 @@ var BasicShapesTask = (function() {
       var TaskPanel = TaskComponents.TaskPanel;
       var TaskHeader = TaskComponents.TaskHeader;
       var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
+      var TaskCountdownTimer = TaskComponents.TaskCountdownTimer;
 
       var shapes = this.state.shapes;
-      var taskIsDone = this.state.step > parseInt(this.props.steps);
-      var coords, sidebar;
+      var question, sidebar, timer;
 
       if (!this.state.isFinished) {
         var bounds = {maxY: 12, maxX: 12, minY: 0, minX: 0};
 
-        coords = <Coords drawAxes={false} shapes={shapes} bounds={bounds} aspect={1} />;
+        question = <Coords drawAxes={false} shapes={shapes} bounds={bounds} aspect={1} />;
 
         var shapeToFind = "kolmio";
 
         var startBtn = this.state.isRunning ? null : (
           <div>
             <hr/>
-            <button className="animated animated-repeat bounce btn btn-primary btn-block" onClick={this.startGame}>
+            <button className="animated animated-repeat bounce btn btn-primary btn-block" onClick={this.handleStartBtnClick}>
               Aloita peli
             </button>
           </div>
@@ -131,30 +148,34 @@ var BasicShapesTask = (function() {
             <hr/>
             Klikattava kappale: <strong>{this.state.target.name}</strong>
             <hr/>
-            Pisteet: {this.state.score}
+            <div ref="score" className="animated text-center">
+              Pisteet: <span className="label label-warning">{this.state.score}</span>
+            </div>
           </div>
         );
 
         sidebar = (
           <div>
             <TaskPanel header="Ohjeet">
-              Etsi koordinaatistosta <strong>{shapeToFind}</strong> ja klikkaa sitä
+              Etsi koordinaatistosta määrätty tasokuvio ja klikkaa sitä.<br/>
+              Sinulla on <strong>{this.props.time} sekuntia</strong> aikaa.
               {startBtn}
               {targetDisplay}
             </TaskPanel>
           </div>
         );
-      }
-      else if (taskIsDone) {
-        coords = <TaskDoneDisplay score={10}/>;
+      } else {
+        question = <TaskDoneDisplay score={this.state.score}/>;
       }
 
       return (
         <div>
-          <TaskHeader name="Kappaleiden tunnistaminen" step={this.state.step} steps={this.props.steps} />
+          <TaskHeader name="Kappaleiden tunnistaminen">
+            <TaskCountdownTimer ref="timer" time={this.props.time} onExpiry={this.handleTimerExpiry}/>
+          </TaskHeader>
           <div className="row">
             <div className="col-sm-6 question">
-              {coords}
+              {question}
             </div>
 
             <div className="col-sm-5 col-sm-offset-1">

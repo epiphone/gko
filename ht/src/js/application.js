@@ -24,7 +24,7 @@ var Application = React.createClass({
   },
 
   getInitialState: function() {
-    return {selectedTask: "Yhteenlasku"};
+    return {selectedTask: "Kappaleiden tunnistaminen"};
   },
 
   render: function() {
@@ -32,7 +32,7 @@ var Application = React.createClass({
     var tasks = {
       "Yhteenlasku": <AdditionTask onTaskDone={this.handleTaskDone} steps={5}/>,
       "Koordinaatiston lukeminen": <SimpleCoordsTask onTaskDone={this.handleTaskDone} steps={5}/>,
-      "Kappaleiden tunnistaminen": <BasicShapesTask onTaskDone={this.handleTaskDone}/>
+      "Kappaleiden tunnistaminen": <BasicShapesTask onTaskDone={this.handleTaskDone} time={20}/>
     };
 
     var taskListElems = Object.keys(tasks).map(function(taskName) {

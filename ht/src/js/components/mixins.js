@@ -36,6 +36,31 @@ var Mixins = (function() {
   };
 
   /**
+   * Provides a setTimeout function which will get cleaned up when
+   * the component is destroyed.
+   */
+  mixins.SetTimeoutMixin = {
+    setTimeout: function() {
+      this.timeouts.push(setTimeout.apply(null, arguments));
+    },
+
+    clearAllTimeouts: function() {
+      this.timeouts.map(clearTimeout);
+      this.timeouts = [];
+    },
+
+    /** Invoked when component is initialized. */
+    componentWillMount: function() {
+      this.timeouts = [];
+    },
+
+    /** Invoked when component is destroyed. */
+    componentWillUnmount: function() {
+      this.clearAllTimeouts();
+    }
+  };
+
+  /**
    * Apply CSS classes for set duration - useful for singleshot animations.
    */
   mixins.TriggerAnimationMixin = {

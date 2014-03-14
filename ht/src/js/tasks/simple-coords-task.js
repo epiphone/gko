@@ -62,6 +62,7 @@ var SimpleCoordsTask = (function() {
       /* jshint ignore:start */
       var TaskPanel = TaskComponents.TaskPanel;
       var TaskHeader = TaskComponents.TaskHeader;
+      var TaskProgressBar = TaskComponents.TaskProgressBar;
       var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
       var CoordsAnswerForm = Forms.CoordsAnswerForm;
 
@@ -92,7 +93,9 @@ var SimpleCoordsTask = (function() {
 
       return (
         <div>
-          <TaskHeader name="Koordinaatiston lukeminen" step={this.state.step} steps={this.props.steps} />
+          <TaskHeader name="Koordinaatiston lukeminen">
+            <TaskProgressBar now={this.state.step} max={this.props.steps}/>
+          </TaskHeader>
           <div className="row">
             <div className="col-sm-6 question">
               {coords}

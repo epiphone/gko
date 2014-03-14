@@ -69,6 +69,7 @@ var AdditionTask = (function() {
       /* jshint ignore:start */
       var TaskPanel = TaskComponents.TaskPanel;
       var TaskHeader = TaskComponents.TaskHeader;
+      var TaskProgressBar = TaskComponents.TaskProgressBar;
       var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
       var MathJax = MathComponents.MathJax;
 
@@ -76,11 +77,9 @@ var AdditionTask = (function() {
       var question, sidebar;
 
       if (!taskIsDone) {
-        console.log("rendering", this.state.a, this.state.b);
-
         var questionContent = this.state.a + " + " + this.state.b + " = ?";
         question = (
-          <div className="text-center bg-warning">
+          <div className="text-center">
             <h1>
               <MathJax>{questionContent}</MathJax>
             </h1>
@@ -104,7 +103,9 @@ var AdditionTask = (function() {
 
       return (
         <div>
-          <TaskHeader name="Yhteenlasku" step={this.state.step} steps={this.props.steps} />
+          <TaskHeader name="Yhteenlasku">
+            <TaskProgressBar now={this.state.step} max={this.props.steps}/>
+          </TaskHeader>
           <div className="row">
             <div className="col-sm-6 question">
               {question}
