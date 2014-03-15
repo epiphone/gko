@@ -9,7 +9,8 @@ var BasicShapesTask = require("./tasks/basic-shapes-task");
 
 
 /**
- * Container and links for example tasks.
+ * A small application with a few example tasks.
+ * @module Application
  */
 var Application = React.createClass({
 

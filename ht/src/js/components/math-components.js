@@ -5,6 +5,7 @@
 
 /**
  * Components for maths tasks.
+ * @module MathComponents
  */
 var MathComponents = (function() {
 
@@ -12,6 +13,23 @@ var MathComponents = (function() {
 
   /**
    * Render LaTex maths notation into web fonts using MathJax.
+   * @name MathJax
+   * @memberof module:MathComponents
+   *
+   * @example
+   * // Render a simple formula:
+   *
+   * var contents = "a_1 + b_2 = c_3";
+   * var formula = (
+   *   <MathJax>
+   *     {contents}
+   *   </MathJax>
+   * );
+   *
+   * React.renderComponent(
+   *   formula,
+   *   document.getElementById("target")
+   * );
    */
   mathComponents.MathJax = React.createClass({
     reprocess: function() {

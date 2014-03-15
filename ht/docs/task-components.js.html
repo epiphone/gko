@@ -1,4 +1,31 @@
-/** @jsx React.DOM */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/task-components.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: components/task-components.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** @jsx React.DOM */
 /* global React, module */
 "use strict";
 
@@ -18,7 +45,7 @@ var TaskComponents = (function() {
    * @memberof module:TaskComponents
    * @property {string} [className='panel-info'] - Panel class name.
    */
-  taskComponents.TaskPanel = React.createClass({
+  taskComponents.TaskPanel = React.createClass({displayName: 'TaskPanel',
 
     propTypes: {
       className: React.PropTypes.string
@@ -29,14 +56,14 @@ var TaskComponents = (function() {
       var className = "panel " + (this.props.className || "panel-info" );
 
       return (
-        <div className={className}>
-          <div className="panel-heading">
-            <h3 className="panel-title">{this.props.header}</h3>
-          </div>
-          <div className="panel-body">
-            {this.props.children}
-          </div>
-        </div>
+        React.DOM.div( {className:className}, 
+          React.DOM.div( {className:"panel-heading"}, 
+            React.DOM.h3( {className:"panel-title"}, this.props.header)
+          ),
+          React.DOM.div( {className:"panel-body"}, 
+            this.props.children
+          )
+        )
       );
       /* jshint ignore:end */
     }
@@ -49,7 +76,7 @@ var TaskComponents = (function() {
    * @property {number} max - The maximum progress value.
    * @property {number} now - The current progress value.
    */
-  taskComponents.TaskProgressBar = React.createClass({
+  taskComponents.TaskProgressBar = React.createClass({displayName: 'TaskProgressBar',
     propTypes: {
       max: React.PropTypes.number.isRequired,
       now: React.PropTypes.number.isRequired
@@ -62,10 +89,10 @@ var TaskComponents = (function() {
       var rightStyle = {width: singleWidth * (this.props.max - this.props.now + 1) + "%"};
 
       return (
-        <div className="progress progress-striped active task-progress-bar">
-          <div className="progress-bar progress-bar-success" style={leftStyle}/>
-          <div className="progress-bar progress-bar-warning" style={rightStyle}/>
-        </div>
+        React.DOM.div( {className:"progress progress-striped active task-progress-bar"}, 
+          React.DOM.div( {className:"progress-bar progress-bar-success", style:leftStyle}),
+          React.DOM.div( {className:"progress-bar progress-bar-warning", style:rightStyle})
+        )
       );
       /* jshint ignore:end */
     }
@@ -80,7 +107,7 @@ var TaskComponents = (function() {
    * @property {boolean} [startOnMount=false] - Does countdown start automatically when rendered.
    * @property {function} [onExpiry] - Countdown expiry event handler.
    */
-  taskComponents.TaskCountdownTimer = React.createClass({
+  taskComponents.TaskCountdownTimer = React.createClass({displayName: 'TaskCountdownTimer',
 
     propTypes: {
       time: React.PropTypes.number.isRequired,
@@ -105,7 +132,7 @@ var TaskComponents = (function() {
         timeLeft: timeLeft
       });
 
-      if (timeLeft < 1) {
+      if (timeLeft &lt; 1) {
         this.clearAllIntervals();
         if ($.isFunction(this.props.onExpiry)) this.props.onExpiry();
       }
@@ -129,14 +156,14 @@ var TaskComponents = (function() {
 
       var barClass = React.addons.classSet({
         "progress-bar-success": width >= 40,
-        "progress-bar-warning": width < 40 && width > 20,
-        "progress-bar-danger": width <= 20,
+        "progress-bar-warning": width &lt; 40 &amp;&amp; width > 20,
+        "progress-bar-danger": width &lt;= 20,
       });
 
       return (
-        <div className="progress progress-striped active task-progress-bar">
-          <div className={"progress-bar " + barClass} style={barStyle}/>
-        </div>
+        React.DOM.div( {className:"progress progress-striped active task-progress-bar"}, 
+          React.DOM.div( {className:"progress-bar " + barClass, style:barStyle})
+        )
       );
       /* jshint ignore:end */
     }
@@ -148,7 +175,7 @@ var TaskComponents = (function() {
    * @memberof module:TaskComponents
    * @property {string} name - Task name to display in the header.
    */
-  taskComponents.TaskHeader = React.createClass({
+  taskComponents.TaskHeader = React.createClass({displayName: 'TaskHeader',
 
     propTypes: {
       name: React.PropTypes.string.isRequired
@@ -157,14 +184,14 @@ var TaskComponents = (function() {
     render: function() {
       /* jshint ignore:start */
       return (
-        <div className="task-header row">
-          <div className="col-sm-7">
-            <h2>{this.props.name}</h2>
-          </div>
-          <div className="col-sm-5">
-            {this.props.children}
-          </div>
-        </div>
+        React.DOM.div( {className:"task-header row"}, 
+          React.DOM.div( {className:"col-sm-7"}, 
+            React.DOM.h2(null, this.props.name)
+          ),
+          React.DOM.div( {className:"col-sm-5"}, 
+            this.props.children
+          )
+        )
       );
       /* jshint ignore:end */
     }
@@ -177,7 +204,7 @@ var TaskComponents = (function() {
    * @memberof module:TaskComponents
    * @property {number} [score] - Score to display.
    */
-  taskComponents.TaskDoneDisplay = React.createClass({
+  taskComponents.TaskDoneDisplay = React.createClass({displayName: 'TaskDoneDisplay',
 
     propTypes: {
       score: React.PropTypes.number
@@ -188,11 +215,11 @@ var TaskComponents = (function() {
       var score = this.props.score || 0;
 
       return (
-        <div className="task-done-display animate bounce-in">
-          <div className="alert alert-success">
-            <strong>Tehtävä suoritettu!</strong> Pisteitä: {score}
-          </div>
-        </div>
+        React.DOM.div( {className:"task-done-display animate bounce-in"}, 
+          React.DOM.div( {className:"alert alert-success"}, 
+            React.DOM.strong(null, "Tehtävä suoritettu!"), " Pisteitä: ", score
+          )
+        )
       );
       /* jshint ignore:end */
     }
@@ -203,3 +230,26 @@ var TaskComponents = (function() {
 
 
 module.exports = TaskComponents;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-CoordsComponents.html">CoordsComponents</a></li><li><a href="module-FormComponents.html">FormComponents</a></li><li><a href="module-Forms.html">Forms</a></li><li><a href="module-MathComponents.html">MathComponents</a></li><li><a href="module-Mixins.html">Mixins</a></li><li><a href="module-TaskComponents.html">TaskComponents</a></li></ul><h3>Namespaces</h3><ul><li><a href="TaskUtils.html">TaskUtils</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha4</a> on Sat Mar 15 2014 15:12:02 GMT+0200 (FLE Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

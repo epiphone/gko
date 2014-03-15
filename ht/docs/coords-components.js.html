@@ -1,4 +1,31 @@
-/** @jsx React.DOM */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/coords-components.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: components/coords-components.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** @jsx React.DOM */
 /* global React, d3, MathUtils, module */
 "use strict";
 
@@ -26,7 +53,7 @@ var CoordsComponents = (function() {
    * @property {function} onClick - Shape click event handler.
    * @property {string} stroke - A CSS compatible stroke color.
    * @property {string} fill - A CSS compatible fill color.
-   * @property {Array.<module:CoordsComponents.Point>} points - Shape vertices.
+   * @property {Array.&lt;module:CoordsComponents.Point>} points - Shape vertices.
    * @property {number} r - Circle radius that's used when only one point is defined.
    * @memberof module:CoordsComponents
    */
@@ -45,7 +72,7 @@ var CoordsComponents = (function() {
    * @memberof module:CoordsComponents
    *
    * @property {boolean} [drawAxes=true] - Whether the x and y axes are drawn.
-   * @property {Array.<module:CoordsComponents.Shape>} [shapes=[]] - The geometric shapes to draw.
+   * @property {Array.&lt;module:CoordsComponents.Shape>} [shapes=[]] - The geometric shapes to draw.
    * @property {Object} [bounds={maxY:10, maxX:10, minY:0, minX:0}] - Maximum coordinate values.
    * @property {Object} [margin={top:10, right:10, bottom:10, left:10}] - Margin around the coordinate system.
    * @property {number} [aspect=1] - Coordinate system aspect ratio.
@@ -57,7 +84,7 @@ var CoordsComponents = (function() {
    * var bounds = {minX: 0, minY: 0, maxX: 10, maxY: 10};
    * var shapes = [{points: [center], r: 0.5, stroke: "red"}];
    * React.renderComponent(
-   *   <Coords shapes={shapes} bounds={bounds}/>,
+   *   &lt;Coords shapes={shapes} bounds={bounds}/>,
    *   document.getElementById("target")
    * );
    *
@@ -65,11 +92,11 @@ var CoordsComponents = (function() {
    * var triangle = [{points: [[0,0], [1,1], [2,0]]}, fill: "#FFF"];
    * var shapes = [triangle];
    * React.renderComponent(
-   *   <Coords shapes={shapes} />,
+   *   &lt;Coords shapes={shapes} />,
    *   document.getElementById("target")
    * );
    */
-  coordsComponents.Coords = React.createClass({
+  coordsComponents.Coords = React.createClass({displayName: 'Coords',
 
     propTypes: {
       drawAxes: React.PropTypes.bool,
@@ -167,19 +194,19 @@ var CoordsComponents = (function() {
         var Shapes = coordsComponents.Shapes;
         var Grid = coordsComponents.Grid;
 
-        shapes = <Shapes x={x} y={y} spacing={spacing} data={this.props.shapes} />;
-        grid = <Grid drawAxes={this.props.drawAxes} x={x} y={y} bounds={bounds} />;
+        shapes = Shapes( {x:x, y:y, spacing:spacing, data:this.props.shapes} );
+        grid = Grid( {drawAxes:this.props.drawAxes, x:x, y:y, bounds:bounds} );
       }
 
       return (
-        <div className="coords-container">
-          <svg ref="svg" onClick={this.handleSVGClick} width={fullWidth} height={fullHeight}>
-            <g transform={transform}>
-              {grid}
-              {shapes}
-            </g>
-          </svg>
-        </div>
+        React.DOM.div( {className:"coords-container"}, 
+          React.DOM.svg( {ref:"svg", onClick:this.handleSVGClick, width:fullWidth, height:fullHeight}, 
+            React.DOM.g( {transform:transform}, 
+              grid,
+              shapes
+            )
+          )
+        )
       );
       /* jshint ignore:end */
     }
@@ -191,7 +218,7 @@ var CoordsComponents = (function() {
    * @name Grid
    * @memberof module:CoordsComponents
    */
-  coordsComponents.Grid = React.createClass({
+  coordsComponents.Grid = React.createClass({displayName: 'Grid',
 
     propTypes: {
       x: React.PropTypes.func.isRequired,
@@ -212,13 +239,13 @@ var CoordsComponents = (function() {
       var xRange = d3.range(Math.ceil((bounds.minX) / spacing), Math.round(bounds.maxX) + spacing, spacing);
       var yRange = d3.range(Math.ceil((bounds.minY) / spacing), Math.round(bounds.maxY) + spacing, spacing);
       var data = xRange.concat(yRange);
-      var isX = function(index) { return index < xRange.length; };
+      var isX = function(index) { return index &lt; xRange.length; };
 
       var axes = container.selectAll(".axis")
         .data(data);
 
       axes.enter().append("line").attr("class", function(d) {
-        return "axis " + ((props.drawAxes && d === 0) ? "thick" : "");
+        return "axis " + ((props.drawAxes &amp;&amp; d === 0) ? "thick" : "");
       });
 
       axes.transition().duration(props.transitionDuration)
@@ -269,7 +296,7 @@ var CoordsComponents = (function() {
     render: function() {
       return (
         /* jshint ignore:start */
-        <g className="axes"/>
+        React.DOM.g( {className:"axes"})
         /* jshint ignore:end */
       );
     }
@@ -282,7 +309,7 @@ var CoordsComponents = (function() {
    * @name Shapes
    * @memberof module:CoordsComponents
    */
-  coordsComponents.Shapes = React.createClass({
+  coordsComponents.Shapes = React.createClass({displayName: 'Shapes',
 
     propTypes: {
       data: React.PropTypes.array.isRequired,
@@ -364,7 +391,7 @@ var CoordsComponents = (function() {
 
     render: function() {
       /* jshint ignore:start */
-      return <g className="shapes"/>;
+      return React.DOM.g( {className:"shapes"});
       /* jshint ignore:end */
     }
   });
@@ -373,3 +400,26 @@ var CoordsComponents = (function() {
 })();
 
 module.exports = CoordsComponents;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-CoordsComponents.html">CoordsComponents</a></li><li><a href="module-FormComponents.html">FormComponents</a></li><li><a href="module-Forms.html">Forms</a></li><li><a href="module-MathComponents.html">MathComponents</a></li><li><a href="module-Mixins.html">Mixins</a></li><li><a href="module-TaskComponents.html">TaskComponents</a></li></ul><h3>Namespaces</h3><ul><li><a href="TaskUtils.html">TaskUtils</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha4</a> on Sat Mar 15 2014 15:12:02 GMT+0200 (FLE Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

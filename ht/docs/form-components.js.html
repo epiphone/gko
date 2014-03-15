@@ -1,4 +1,31 @@
-/** @jsx React.DOM */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/form-components.js</title>
+    
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+    
+    <h1 class="page-title">Source: components/form-components.js</h1>
+    
+    
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** @jsx React.DOM */
 /* global React, require, module */
 "use strict";
 
@@ -27,7 +54,7 @@ var FormComponents = (function(){
    * @property {string} [formClass='form-horizontal'] - Form element's CSS class.
    * @property {string} [btnClass='btn btn-success btn-lg btn-block'] - Submit button's CSS class.
    */
-  formComponents.AnswerForm = React.createClass({
+  formComponents.AnswerForm = React.createClass({displayName: 'AnswerForm',
 
     propTypes: {
       onAnswer: React.PropTypes.func.isRequired,
@@ -103,12 +130,12 @@ var FormComponents = (function(){
       var btnClass = this.props.btnClass + (this.state.isValid ? "" : " disabled");
 
       return (
-        <form role="form" className={this.props.formClass} onSubmit={this.handleSubmit} noValidate>
-          {children}
-          <div className="form-group">
-            <input ref="btn" type="submit" value="Vastaa" className={btnClass} />
-          </div>
-        </form>
+        React.DOM.form( {role:"form", className:this.props.formClass, onSubmit:this.handleSubmit, noValidate:true}, 
+          children,
+          React.DOM.div( {className:"form-group"}, 
+            React.DOM.input( {ref:"btn", type:"submit", value:"Vastaa", className:btnClass} )
+          )
+        )
       );
       /* jshint ignore:end */
     }
@@ -127,7 +154,7 @@ var FormComponents = (function(){
    * @property {string} [className] - Input field class.
    * @property {function(boolean)} [onValidityChange] - Input validity change event handler.
    */
-  formComponents.ReInput = React.createClass({
+  formComponents.ReInput = React.createClass({displayName: 'ReInput',
 
     propTypes: {
       re: React.PropTypes.object,
@@ -201,27 +228,27 @@ var FormComponents = (function(){
     render: function() {
       /* jshint ignore:start */
       var validationState = React.addons.classSet({
-        "has-success": this.state.isValid && this.state.isDirty,
-        "has-warning": !this.state.isDirty && this.props.showError,
+        "has-success": this.state.isValid &amp;&amp; this.state.isDirty,
+        "has-warning": !this.state.isDirty &amp;&amp; this.props.showError,
         "has-error": !this.state.isValid
       });
 
       var error;
       if (this.props.showError) {
         if (!this.state.isValid) {
-          error = <label className="control-label">Virheellinen syöte</label>;
+          error = React.DOM.label( {className:"control-label"}, "Virheellinen syöte");
         }
-        else if (this.props.required && this.value().length === 0) {
-          error = <label className="control-label">Täytä tämä kenttä</label>;
+        else if (this.props.required &amp;&amp; this.value().length === 0) {
+          error = React.DOM.label( {className:"control-label"}, "Täytä tämä kenttä");
         }
       };
 
       return (
-        <div className={"form-group " + validationState}>
-          {error}
-          <input ref="input" onChange={this.handleChange} value={this.state.value} placeholder={this.props.placeholder}
-          type={this.props.type} className={"form-control " + this.props.className} />
-        </div>
+        React.DOM.div( {className:"form-group " + validationState}, 
+          error,
+          React.DOM.input( {ref:"input", onChange:this.handleChange, value:this.state.value, placeholder:this.props.placeholder,
+          type:this.props.type, className:"form-control " + this.props.className} )
+        )
       );
       /* jshint ignore:end */
     }
@@ -238,7 +265,7 @@ var FormComponents = (function(){
    * @property {function(boolean)} [onValidityChange] - Input validity change event handler.
    * @property {function} [onSubmit] - Input submit event handler, triggered when Enter is clicked.
    */
-  formComponents.NumInput = React.createClass({
+  formComponents.NumInput = React.createClass({displayName: 'NumInput',
 
     propTypes: {
       step: React.PropTypes.number,
@@ -311,24 +338,24 @@ var FormComponents = (function(){
       var validationState = this.state.isValid ? "has-success" : "has-error";
 
       return (
-        <div className={"form-group " + validationState}>
-          <div className="row">
-            <div className="col-sm-3 col-xs-3">
-              <button tabIndex="-1" className={btnClass + " pull-right"} onClick={this.handleDecrement}>
-                <span className="glyphicon glyphicon-chevron-left"/>
-              </button>
-            </div>
-            <div className="col-sm-6 col-xs-6">
-              <input type="number" value={this.state.value} onChange={this.handleChange} onKeyPress={this.handleKeyPress}
-              className="form-control input-lg text-center" placeholder={this.props.placeholder}/>
-            </div>
-            <div className="col-sm-3 col-xs-3">
-              <button tabIndex="-1" className={btnClass + " pull-left"} onClick={this.handleIncrement}>
-                <span className="glyphicon glyphicon-chevron-right"/>
-              </button>
-            </div>
-          </div>
-        </div>
+        React.DOM.div( {className:"form-group " + validationState}, 
+          React.DOM.div( {className:"row"}, 
+            React.DOM.div( {className:"col-sm-3 col-xs-3"}, 
+              React.DOM.button( {tabIndex:"-1", className:btnClass + " pull-right", onClick:this.handleDecrement}, 
+                React.DOM.span( {className:"glyphicon glyphicon-chevron-left"})
+              )
+            ),
+            React.DOM.div( {className:"col-sm-6 col-xs-6"}, 
+              React.DOM.input( {type:"number", value:this.state.value, onChange:this.handleChange, onKeyPress:this.handleKeyPress,
+              className:"form-control input-lg text-center", placeholder:this.props.placeholder})
+            ),
+            React.DOM.div( {className:"col-sm-3 col-xs-3"}, 
+              React.DOM.button( {tabIndex:"-1", className:btnClass + " pull-left", onClick:this.handleIncrement}, 
+                React.DOM.span( {className:"glyphicon glyphicon-chevron-right"})
+              )
+            )
+          )
+        )
       );
       /* jshint ignore:end */
     }
@@ -339,3 +366,26 @@ var FormComponents = (function(){
 
 
 module.exports = FormComponents;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Index</a></h2><h3>Modules</h3><ul><li><a href="module-CoordsComponents.html">CoordsComponents</a></li><li><a href="module-FormComponents.html">FormComponents</a></li><li><a href="module-Forms.html">Forms</a></li><li><a href="module-MathComponents.html">MathComponents</a></li><li><a href="module-Mixins.html">Mixins</a></li><li><a href="module-TaskComponents.html">TaskComponents</a></li></ul><h3>Namespaces</h3><ul><li><a href="TaskUtils.html">TaskUtils</a></li></ul>
+</nav>
+
+<br clear="both">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.0-alpha4</a> on Sat Mar 15 2014 15:12:02 GMT+0200 (FLE Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
