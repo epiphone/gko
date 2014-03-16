@@ -1,0 +1,21 @@
+{
+  "name": "ht",
+  "scripts": {
+    "build-js": "browserify -t reactify src/main.js -o src/js/bundle.js",
+    "watch-js": "watchify --debug -v -t reactify src/main.js -o src/js/bundle.js",
+    "build-test-js": "browserify -t reactify test/addition-task-test.js -o test/test-bundle.js",
+    "test": "npm run build-test-js & karma start karma.conf.js",
+    "start": "npm run build-js & cd src & python -m SimpleHTTPServer"
+  },
+  "dependencies": {
+    "browserify": "^3.32.1",
+    "watchify": "^0.6.2",
+    "reactify": "^0.10.0",
+    "react-tools": "^0.9.0",
+    "jsdoc": "^3.3.0-alpha4",
+    "karma": "^0.12.0",
+    "karma-chrome-launcher": "^0.1.2",
+    "karma-jasmine": "^0.2.2",
+    "karma-browserify": "^0.1.0"
+  }
+}

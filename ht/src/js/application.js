@@ -25,7 +25,7 @@ var Application = React.createClass({
   },
 
   getInitialState: function() {
-    return {selectedTask: "Kappaleiden tunnistaminen"};
+    return {selectedTask: "Yhteenlasku"};
   },
 
   render: function() {

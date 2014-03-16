@@ -1,449 +1,5 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 /** @jsx React.DOM */
-"use strict";
-/* globals React, require, module */
-
-
-var AdditionTask = require("./tasks/addition-task");
-var SimpleCoordsTask = require("./tasks/simple-coords-task");
-var BasicShapesTask = require("./tasks/basic-shapes-task");
-
-
-/**
- * A small application with a few example tasks.
- * @module Application
- */
-var Application = React.createClass({displayName: 'Application',
-
-  handleListClick: function(e) {
-    e.preventDefault();
-    var taskName = e.target.text;
-    this.setState({selectedTask: taskName});
-  },
-
-  handleTaskDone: function() {
-    console.log("Task done - here's where the task connects to an external app.");
-  },
-
-  getInitialState: function() {
-    return {selectedTask: "Yhteenlasku"};
-  },
-
-  render: function() {
-    /* jshint ignore:start */
-    var tasks = {
-      "Yhteenlasku": AdditionTask( {onTaskDone:this.handleTaskDone, steps:5}),
-      "Koordinaatiston lukeminen": SimpleCoordsTask( {onTaskDone:this.handleTaskDone, steps:5}),
-      "Kappaleiden tunnistaminen": BasicShapesTask( {onTaskDone:this.handleTaskDone, time:20})
-    };
-
-    var taskListElems = Object.keys(tasks).map(function(taskName) {
-      var className = taskName === this.state.selectedTask ? "text-muted" : "";
-      return (
-        React.DOM.li(null, 
-          React.DOM.a( {className:className, href:"", onClick:this.handleListClick}, taskName)
-        )
-      );
-    }.bind(this));
-
-    var task = tasks[this.state.selectedTask];
-
-    return (
-      React.DOM.div(null, 
-        React.DOM.ul( {className:"list-inline"}, 
-          taskListElems
-        ),
-
-        React.DOM.div( {className:"task-container"}, 
-          task
-        )
-      )
-    );
-    /* jshint ignore:end */
-  }
-});
-
-module.exports = Application;
-
-},{"./tasks/addition-task":8,"./tasks/basic-shapes-task":9,"./tasks/simple-coords-task":10}],2:[function(require,module,exports){
-/** @jsx React.DOM */
-/* global React, d3, MathUtils, module */
-"use strict";
-
-
-/**
- * Components for drawing geometric shapes on to a coordinate system.
- * @module CoordsComponents
- */
-var CoordsComponents = (function() {
-
-  var coordsComponents = {};
-
-  /**
-   * An array with two elements: the x and y coordinate.
-   * @typedef {Array} Point
-   * @memberof module:CoordsComponents
-   */
-
-  /**
-   * A shape that is drawn on the coordinate system.
-   * @typedef Shape
-   * @type {Object}
-   * @property {string} name
-   * @property {number} key
-   * @property {function} onClick - Shape click event handler.
-   * @property {string} stroke - A CSS compatible stroke color.
-   * @property {string} fill - A CSS compatible fill color.
-   * @property {Array.<module:CoordsComponents.Point>} points - Shape vertices.
-   * @property {number} r - Circle radius that's used when only one point is defined.
-   * @memberof module:CoordsComponents
-   */
-
-  /**
-   * Coordinate system click event handler.
-   * @callback coordsOnClick
-   * @param {number} x - Click position's x coordinate, rounded to nearest integer.
-   * @param {number} y - Click position's y coordinate, rounded to nearest integer.
-   * @memberof module:CoordsComponents
-   */
-
-  /**
-   * A 2D coordinate system, consists of a Grid and Shapes.
-   * @name Coords
-   * @memberof module:CoordsComponents
-   *
-   * @property {boolean} [drawAxes=true] - Whether the x and y axes are drawn.
-   * @property {Array.<module:CoordsComponents.Shape>} [shapes=[]] - The geometric shapes to draw.
-   * @property {Object} [bounds={maxY:10, maxX:10, minY:0, minX:0}] - Maximum coordinate values.
-   * @property {Object} [margin={top:10, right:10, bottom:10, left:10}] - Margin around the coordinate system.
-   * @property {number} [aspect=1] - Coordinate system aspect ratio.
-   * @property {module:CoordsComponents.coordsOnClick} [onClick] - Click event handler.
-   *
-   * @example
-   * // Drawing a single circle:
-   * var center = [1, 2];
-   * var bounds = {minX: 0, minY: 0, maxX: 10, maxY: 10};
-   * var shapes = [{points: [center], r: 0.5, stroke: "red"}];
-   * React.renderComponent(
-   *   <Coords shapes={shapes} bounds={bounds}/>,
-   *   document.getElementById("target")
-   * );
-   *
-   * // Drawing a polygon:
-   * var triangle = [{points: [[0,0], [1,1], [2,0]]}, fill: "#FFF"];
-   * var shapes = [triangle];
-   * React.renderComponent(
-   *   <Coords shapes={shapes} />,
-   *   document.getElementById("target")
-   * );
-   */
-  coordsComponents.Coords = React.createClass({displayName: 'Coords',
-
-    propTypes: {
-      drawAxes: React.PropTypes.bool,
-      shapes: React.PropTypes.array,
-      bounds: React.PropTypes.object,
-      margin: React.PropTypes.object,
-      aspect: React.PropTypes.number,
-      onClick: React.PropTypes.func
-    },
-
-    handleResize: function() {
-      var parent = $(this.getDOMNode().parentNode);
-
-      var margin = this.props.margin;
-      var width = parent ? parent.width() - margin.left - margin.right : 0;
-      var height = Math.round(width * this.props.aspect) - margin.top - margin.bottom;
-
-      var bounds = this.props.bounds;
-      var spacing = Math.round(Math.min(
-        width / Math.abs(bounds.maxX - bounds.minX),
-        height / Math.abs(bounds.maxY - bounds.minY)
-      ));
-
-      var x = d3.scale.linear()
-        .domain([bounds.minX, bounds.minX + 1])
-        .range([0, spacing]);
-
-      var y = d3.scale.linear()
-        .domain([bounds.minY, bounds.minY + 1])
-        .range([height, height - spacing]);
-
-
-      this.setState({
-        width: width,
-        spacing: spacing,
-        x: x,
-        y: y
-      });
-    },
-
-    /* Translate and round screen position into coordinates, trigger event. */
-    handleSVGClick: function(event) {
-      if (!$.isFunction(this.props.onClick)) return;
-
-      var elem = $(this.refs.svg.getDOMNode());
-      var bounds = this.props.bounds;
-
-      var svgX = event.pageX - elem.offset().left - this.props.margin.left;
-      var svgY = event.pageY - elem.offset().top - this.props.margin.top;
-      var coordsX = Math.max(bounds.minX, Math.min(bounds.maxX, Math.round(this.state.x.invert(svgX))));
-      var coordsY = Math.max(bounds.minY, Math.min(bounds.maxY, Math.round(this.state.y.invert(svgY))));
-
-      this.props.onClick(coordsX, coordsY);
-    },
-
-    getInitialState: function() {
-      return {width: 0};
-    },
-
-    getDefaultProps: function() {
-      return {
-        drawAxes: true,
-        shapes: [],
-        bounds: {maxY:10, maxX:10, minY:0, minX:0},
-        aspect: 1,
-        margin: {top:10, right:10, bottom:10, left:10}
-      };
-    },
-
-    componentDidMount: function() {
-      window.addEventListener("resize", this.handleResize);
-      this.handleResize();
-    },
-
-    componentWillUnmount: function() {
-      window.removeEventListener("resize", this.handleResize);
-    },
-
-    render: function() {
-      /* jshint ignore:start */
-      var margin = this.props.margin;
-      var bounds = this.props.bounds;
-      var width = this.state.width;
-      var height = Math.round(width * this.props.aspect) - margin.top - margin.bottom;
-      var spacing = this.state.spacing;
-      var x = this.state.x;
-      var y = this.state.y;
-
-      var fullWidth = width + margin.left + margin.right;
-      var fullHeight = height + margin.top + margin.bottom;
-      var transform = "translate(" + margin.left + "," + margin.top + ")";
-
-      var shapes, grid;
-      if (this.state.width) {
-        var Shapes = coordsComponents.Shapes;
-        var Grid = coordsComponents.Grid;
-
-        shapes = Shapes( {x:x, y:y, spacing:spacing, data:this.props.shapes} );
-        grid = Grid( {drawAxes:this.props.drawAxes, x:x, y:y, bounds:bounds} );
-      }
-
-      return (
-        React.DOM.div( {className:"coords-container"}, 
-          React.DOM.svg( {ref:"svg", onClick:this.handleSVGClick, width:fullWidth, height:fullHeight}, 
-            React.DOM.g( {transform:transform}, 
-              grid,
-              shapes
-            )
-          )
-        )
-      );
-      /* jshint ignore:end */
-    }
-  });
-
-  /**
-   * Draw a grid on a coordinate system.
-   * Used by the {@link module:CoordsComponents.Coords|Coords component}.
-   * @name Grid
-   * @memberof module:CoordsComponents
-   */
-  coordsComponents.Grid = React.createClass({displayName: 'Grid',
-
-    propTypes: {
-      x: React.PropTypes.func.isRequired,
-      y: React.PropTypes.func.isRequired,
-      bounds: React.PropTypes.object.isRequired,
-      spacing: React.PropTypes.number,
-      transitionDuration: React.PropTypes.number,
-      drawAxes: React.PropTypes.bool
-    },
-
-    update: function(props) {
-      var container = d3.select(this.getDOMNode());
-      var bounds = props.bounds;
-      var spacing = props.spacing;
-      var x = props.x;
-      var y = props.y;
-
-      var xRange = d3.range(Math.ceil((bounds.minX) / spacing), Math.round(bounds.maxX) + spacing, spacing);
-      var yRange = d3.range(Math.ceil((bounds.minY) / spacing), Math.round(bounds.maxY) + spacing, spacing);
-      var data = xRange.concat(yRange);
-      var isX = function(index) { return index < xRange.length; };
-
-      var axes = container.selectAll(".axis")
-        .data(data);
-
-      axes.enter().append("line").attr("class", function(d) {
-        return "axis " + ((props.drawAxes && d === 0) ? "thick" : "");
-      });
-
-      axes.transition().duration(props.transitionDuration)
-        .attr("x1", function(d, i) { return isX(i) ? x(d) : x(bounds.minX); })
-        .attr("y1", function(d, i) { return isX(i) ? y(bounds.minY) : y(d); })
-        .attr("x2", function(d, i) { return isX(i) ? x(d) : x(bounds.maxX); })
-        .attr("y2", function(d, i) { return isX(i) ? y(bounds.maxY) : y(d); });
-
-      axes.exit().remove();
-
-      if (props.drawAxes) {
-        var labels = container.selectAll(".label").data(data);
-
-        labels.enter().append("text")
-          .attr("class", function(d, i) { return "label " + (isX(i) ? "x" : "y"); })
-          .attr("text-anchor", "middle")
-          .style("display", function(d) { if (!d) return "none"; })
-          .text(Object)
-          .attr("dy", function(d, i) { return isX(i) ? "1.4em" : ".3em"; })
-          .attr("dx", function(d, i) { return isX(i) ? null : "-.8em"; })
-          .attr("font-size", 1 + "em");
-
-        labels.transition().duration(props.transitionDuration)
-          .attr("x", function(d, i) { return isX(i) ? x(d) : x(0); })
-          .attr("y", function(d, i) { return isX(i) ? y(0) : y(d); });
-
-        labels.exit().remove();
-      }
-    },
-
-    getDefaultProps: function() {
-      return {
-        drawAxes: true,
-        transitionDuration: 550,
-        spacing: 1
-      };
-    },
-
-    componentDidMount: function() {
-      this.update(this.props);
-    },
-
-    shouldComponentUpdate: function(nextProps) {
-      this.update(nextProps);
-      return false;
-    },
-
-    render: function() {
-      return (
-        /* jshint ignore:start */
-        React.DOM.g( {className:"axes"})
-        /* jshint ignore:end */
-      );
-    }
-  });
-
-
-  /**
-   * Draw various geometric shapes on a coordinate system.
-   * Used by the {@link module:CoordsComponents.Coords|Coords component}.
-   * @name Shapes
-   * @memberof module:CoordsComponents
-   */
-  coordsComponents.Shapes = React.createClass({displayName: 'Shapes',
-
-    propTypes: {
-      data: React.PropTypes.array.isRequired,
-      x: React.PropTypes.func.isRequired,
-      y: React.PropTypes.func.isRequired,
-      spacing: React.PropTypes.number.isRequired,
-      transitionDuration: React.PropTypes.number
-    },
-
-    /* Redraw shapes. Gets called whenever shapes are updated or screen resizes. */
-    update: function(props) {
-      var container = d3.select(this.getDOMNode());
-      var transitionDuration = props.transitionDuration || 550;
-
-      var polygons = container.selectAll("polygon.shape")
-        .data(props.data.filter(function(s) { return s.points.length > 2; }));
-
-      var addedPolygons = polygons.enter().append("polygon").attr("class", "shape");
-
-      polygons.transition().duration(transitionDuration)
-        .attr("points", function(d) {
-          return d.points.map(function(ps) {
-            return [props.x(ps[0]), props.y(ps[1])];
-          });
-        });
-
-      polygons.exit().remove();
-
-
-      var circles = container.selectAll("circle.shape")
-        .data(props.data.filter(function(s) { return s.points.length == 1; }));
-
-      var addedCircles = circles.enter().append("circle").attr("class", "shape");
-
-      circles.transition().duration(transitionDuration)
-        .attr("cx", function(d) { return props.x(d.points[0][0]); })
-        .attr("cy", function(d) { return props.y(d.points[0][1]); })
-        .attr("r", function(d) { return props.spacing * (d.r || 0.2); });
-
-      circles.exit().remove();
-
-
-      var lines = container.selectAll("line.shape")
-        .data(props.data.filter(function(s) { return s.points.length == 2; }));
-
-      var addedLines = lines.enter().append("line").attr("class", "shape");
-
-      lines.transition().duration(transitionDuration)
-        .attr("x1", function(d) { return props.x(d.points[0][0]); })
-        .attr("y1", function(d) { return props.y(d.points[0][1]); })
-        .attr("x2", function(d) { return props.x(d.points[1][0]); })
-        .attr("y2", function(d) { return props.y(d.points[1][1]); });
-
-      lines.exit().remove();
-
-      // Attach click event listeners.
-      [addedPolygons, addedCircles, addedLines].forEach(function(added) {
-        added.on("click", function(d) {
-          if ($.isFunction(d.onClick))
-            d.onClick(d);
-        });
-      });
-
-      // Set common attributes.
-      container.selectAll(".shape")
-        .attr("fill", function(d) { return d.fill || "transparent"; })
-        .attr("stroke", function(d) { return d.stroke || "steelblue"; })
-        .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
-    },
-
-    componentDidMount: function() {
-      this.update(this.props);
-    },
-
-    shouldComponentUpdate: function(nextProps) {
-      this.update(nextProps);
-      return false;
-    },
-
-    render: function() {
-      /* jshint ignore:start */
-      return React.DOM.g( {className:"shapes"});
-      /* jshint ignore:end */
-    }
-  });
-
-  return coordsComponents;
-})();
-
-module.exports = CoordsComponents;
-
-},{}],3:[function(require,module,exports){
-/** @jsx React.DOM */
 /* global React, require, module */
 "use strict";
 
@@ -785,7 +341,7 @@ var FormComponents = (function(){
 
 module.exports = FormComponents;
 
-},{"./mixins":6}],4:[function(require,module,exports){
+},{"./mixins":4}],2:[function(require,module,exports){
 /** @jsx React.DOM */
 /* global React, require, module */
 "use strict";
@@ -902,7 +458,7 @@ var Forms = (function() {
 
 module.exports = Forms;
 
-},{"./form-components":3}],5:[function(require,module,exports){
+},{"./form-components":1}],3:[function(require,module,exports){
 /** @jsx React.DOM */
 /* global React, module, MathJax */
 "use strict";
@@ -967,7 +523,7 @@ var MathComponents = (function() {
 
 module.exports = MathComponents;
 
-},{}],6:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /** @jsx React.DOM */
 /* global module */
 "use strict";
@@ -1064,7 +620,7 @@ var Mixins = (function() {
 
 module.exports = Mixins;
 
-},{}],7:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 /** @jsx React.DOM */
 /* global React, module */
 "use strict";
@@ -1271,7 +827,7 @@ var TaskComponents = (function() {
 
 module.exports = TaskComponents;
 
-},{"./mixins":6}],8:[function(require,module,exports){
+},{"./mixins":4}],6:[function(require,module,exports){
 /** @jsx React.DOM */
 /* global React, require, module */
 "use strict";
@@ -1401,322 +957,7 @@ var AdditionTask = (function() {
 
 module.exports = AdditionTask;
 
-},{"../components/forms":4,"../components/math-components":5,"../components/task-components":7,"../utils/task-utils":11}],9:[function(require,module,exports){
-/** @jsx React.DOM */
-/* global React, d3, module, require */
-"use strict";
-
-
-/**
- * Detect as many shapes as you can in 60 seconds.
- */
-var BasicShapesTask = (function() {
-
-  var TaskUtils = require("../utils/task-utils");
-  var TaskComponents = require("../components/task-components");
-  var Coords = require("../components/coords-components").Coords;
-  var Mixins = require("../components/mixins");
-
-  var basicShapesTask = React.createClass({displayName: 'basicShapesTask',
-
-    propTypes: {
-      onTaskDone: React.PropTypes.func.isRequired,
-      time: React.PropTypes.number.isRequired
-    },
-
-    mixins: [Mixins.TriggerAnimationMixin, Mixins.SetTimeoutMixin],
-
-    /**
-     * Returns an array of six different shapes that fill the coords
-     * in a random order.
-     */
-    getRandomShapes: function() {
-      var c1 = 0.46, c2 = 1.21, s1 = 1.43, s2 = 0.885;
-      var pentagonPts = [[-s2,-c2], [-s1,c1], [0,1.5], [s1,c1], [s2,-c2]];
-      pentagonPts = TaskUtils.translate(pentagonPts, 2.5, 1.5);
-
-      var translates = [[0,0], [6,0], [0,4], [6,4], [0,8], [6,8]];
-      var bases = [
-        {name:"kolmio", points:[[1,0], [1,3], [4,0]]},
-        {name:"neliö", points:[[1,0], [1,3], [4,3], [4,0]]},
-        {name:"ympyrä", points:[[2.5,1.5]], r:1.5},
-        {name:"suunnikas", points:[[0,0], [0.5,3], [4.5,3], [4,0]]},
-        {name:"puolisuunnikas", points:[[0,0], [0.5,3], [4,3], [4.5,0]]},
-        {name:"viisikulmio", points:pentagonPts}
-      ];
-
-      bases = TaskUtils.shuffle(bases);
-      var clrs = d3.scale.category10();
-
-      var shapes = bases.map(function(base, i) {
-        var translateX = translates[i][0] + Math.random();
-        var translateY = translates[i][1] + Math.random();
-        base.points = TaskUtils.translate(base.points, translateX, translateY);
-        base.key = i;
-        base.onClick = this.handleShapeClick;
-        base.stroke = "black";
-        base.fill = clrs(TaskUtils.rand(9));
-        return base;
-      }.bind(this));
-
-      return shapes;
-    },
-
-    /** Reset the question, i.e. generate new shapes. */
-    reset: function() {
-      var shapes = this.getRandomShapes();
-
-      // Prevent asking for the same shape twice in a row.
-      var possibleTargets = shapes;
-      if (this.state.target) {
-        possibleTargets = possibleTargets.filter(function(shape) {
-          return shape.name !== this.state.target.name;
-        }.bind(this));
-      }
-      var target = possibleTargets[TaskUtils.rand(possibleTargets.length)];
-
-      this.setState({
-        shapes: this.getRandomShapes(),
-        target: target
-      });
-    },
-
-    handleStartBtnClick: function() {
-      this.setState({isRunning: true, score: 0});
-      this.refs.timer.startCountdown();
-      this.reset();
-    },
-
-    /** Check if correct shape and proceed. */
-    handleShapeClick: function(shape) {
-      var scoreIncrement;
-      if (shape.name === this.state.target.name) {
-        scoreIncrement = 1;
-      } else {
-        scoreIncrement = -1;
-      }
-
-      var elem = $(this.refs.score.getDOMNode());
-      var anim = scoreIncrement > 0 ? "pulse" : "shake";
-      this.animate(elem, anim, 1000);
-
-
-      this.setState({score: Math.max(this.state.score + scoreIncrement, 0)});
-      this.reset();
-    },
-
-    /** Task finishes (after a small timeout for smoothness) when timer expires. */
-    handleTimerExpiry: function() {
-      this.setTimeout(function() {
-        this.setState({ isFinished: true });
-      }.bind(this), 500);
-    },
-
-    getInitialState: function() {
-      return {
-        shapes: [],
-        score: 0,
-        isRunning: false,
-        isFinished: false
-      };
-    },
-
-    render: function() {
-      /* jshint ignore:start */
-      var TaskPanel = TaskComponents.TaskPanel;
-      var TaskHeader = TaskComponents.TaskHeader;
-      var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
-      var TaskCountdownTimer = TaskComponents.TaskCountdownTimer;
-
-      var shapes = this.state.shapes;
-      var question, sidebar, timer;
-
-      if (!this.state.isFinished) {
-        var bounds = {maxY: 12, maxX: 12, minY: 0, minX: 0};
-
-        question = Coords( {drawAxes:false, shapes:shapes, bounds:bounds, aspect:1} );
-
-        var shapeToFind = "kolmio";
-
-        var startBtn = this.state.isRunning ? null : (
-          React.DOM.div(null, 
-            React.DOM.hr(null),
-            React.DOM.button( {className:"animated animated-repeat bounce btn btn-primary btn-block", onClick:this.handleStartBtnClick}, 
-              "Aloita peli"
-            )
-          )
-        );
-
-        var targetDisplay = !this.state.target ? null : (
-          React.DOM.div( {className:"animated bounce-in"}, 
-            React.DOM.hr(null),
-            "Klikattava kappale: ", React.DOM.strong(null, this.state.target.name),
-            React.DOM.hr(null),
-            React.DOM.div( {ref:"score", className:"animated text-center"}, 
-              "Pisteet: ", React.DOM.span( {className:"label label-warning"}, this.state.score)
-            )
-          )
-        );
-
-        sidebar = (
-          React.DOM.div(null, 
-            TaskPanel( {header:"Ohjeet"}, 
-              "Etsi koordinaatistosta määrätty tasokuvio ja klikkaa sitä.",React.DOM.br(null),
-              "Sinulla on ", React.DOM.strong(null, this.props.time, " sekuntia"), " aikaa.",
-              startBtn,
-              targetDisplay
-            )
-          )
-        );
-      } else {
-        question = TaskDoneDisplay( {score:this.state.score});
-      }
-
-      return (
-        React.DOM.div(null, 
-          TaskHeader( {name:"Kappaleiden tunnistaminen"}, 
-            TaskCountdownTimer( {ref:"timer", time:this.props.time, onExpiry:this.handleTimerExpiry})
-          ),
-          React.DOM.div( {className:"row"}, 
-            React.DOM.div( {className:"col-sm-6 question"}, 
-              question
-            ),
-
-            React.DOM.div( {className:"col-sm-5 col-sm-offset-1"}, 
-              sidebar
-            )
-          )
-        )
-      );
-      /* jshint ignore:end */
-    }
-  });
-
-  return basicShapesTask;
-})();
-
-module.exports = BasicShapesTask;
-
-},{"../components/coords-components":2,"../components/mixins":6,"../components/task-components":7,"../utils/task-utils":11}],10:[function(require,module,exports){
-/** @jsx React.DOM */
-/* global React, require, module */
-"use strict";
-
-
-/**
- * Read positions from a coordinate system.
- */
-var SimpleCoordsTask = (function() {
-
-  var TaskUtils = require("../utils/task-utils");
-  var TaskComponents = require("../components/task-components");
-  var Coords = require("../components/coords-components").Coords;
-  var Forms = require("../components/forms");
-
-
-  var simpleCoordsTask = React.createClass({displayName: 'simpleCoordsTask',
-    propTypes: {
-      steps: React.PropTypes.number.isRequired,
-      onTaskDone: React.PropTypes.func.isRequired
-    },
-
-    /** Reset the question, i.e. generate a new random point. */
-    reset: function() {
-      var newPoint;
-      do { newPoint = [TaskUtils.randRange(0, 10), TaskUtils.randRange(0, 10)]; }
-      while (TaskUtils.matchesSolution(newPoint, this.state.point));
-
-      this.setState({point: newPoint});
-    },
-
-    /** Check if correct. */
-    handleAnswer: function(x, y) {
-      var isCorrect = TaskUtils.matchesSolution([x, y], this.state.point);
-      if (isCorrect)
-        this.handleCorrectAnswer();
-
-      return isCorrect;
-    },
-
-    handleCorrectAnswer: function() {
-      var step = this.state.step;
-      if (step === parseInt(this.props.steps))
-        this.props.onTaskDone();
-      else
-        this.reset();
-        this.setState({step: step + 1});
-    },
-
-    componentDidMount: function() {
-      this.reset();
-    },
-
-    getInitialState: function() {
-      return {
-        step: 1,
-        point: null
-      };
-    },
-
-    render: function() {
-      /* jshint ignore:start */
-      var TaskPanel = TaskComponents.TaskPanel;
-      var TaskHeader = TaskComponents.TaskHeader;
-      var TaskProgressBar = TaskComponents.TaskProgressBar;
-      var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
-      var CoordsAnswerForm = Forms.CoordsAnswerForm;
-
-      var point = this.state.point;
-      var taskIsDone = this.state.step > parseInt(this.props.steps);
-      var coords, sidebar;
-
-      if (point && !taskIsDone) {
-        var bounds = {maxY: 10, maxX: 10, minY: -2, minX: -2};
-        var shapes = [{points: [point], r:0.2, strokeWidth: 3, stroke: "#FF5B24", fill:"#FD0000"}];
-
-        coords = Coords( {shapes:shapes, bounds:bounds, aspect:1} );
-
-        sidebar = (
-          React.DOM.div(null, 
-            TaskPanel( {header:"Ohjeet"}, 
-              React.DOM.span(null, "Mitkä ovat pisteen x-ja y-koordinaatit?")
-            ),
-            TaskPanel( {header:"Vastaus", className:"panel-success panel-extra-padding"}, 
-              CoordsAnswerForm( {ref:"form", onAnswer:this.handleAnswer} )
-            )
-          )
-        );
-      }
-      else if (taskIsDone) {
-        coords = TaskDoneDisplay( {score:10});
-      }
-
-      return (
-        React.DOM.div(null, 
-          TaskHeader( {name:"Koordinaatiston lukeminen"}, 
-            TaskProgressBar( {now:this.state.step, max:this.props.steps})
-          ),
-          React.DOM.div( {className:"row"}, 
-            React.DOM.div( {className:"col-sm-6 question"}, 
-              coords
-            ),
-
-            React.DOM.div( {className:"col-sm-5 col-sm-offset-1"}, 
-              sidebar
-            )
-          )
-        )
-      );
-      /* jshint ignore:end */
-    }
-  });
-
-  return simpleCoordsTask;
-})();
-
-module.exports = SimpleCoordsTask;
-
-},{"../components/coords-components":2,"../components/forms":4,"../components/task-components":7,"../utils/task-utils":11}],11:[function(require,module,exports){
+},{"../components/forms":2,"../components/math-components":3,"../components/task-components":5,"../utils/task-utils":7}],7:[function(require,module,exports){
 "use strict";
 /* global module */
 
@@ -1889,18 +1130,61 @@ var TaskUtils = {
 
 module.exports = TaskUtils;
 
-},{}],12:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 /** @jsx React.DOM */
 "use strict";
 
-/* jshint ignore:start */
-$(function() {
-    var Application = require("./js/application.js");
+/**
+ * Testing the addition example task.
+ *
+ * Uses Jasmine (http://jasmine.github.io/2.0/introduction.html) and
+ * React's test utilities (http://facebook.github.io/react/docs/test-utils.html).
+ */
 
-    React.renderComponent(
-        Application(null ),
-        document.getElementById("application")
-    );
+
+/* jshint ignore:start */
+var AdditionTask = require("../src/js/tasks/addition-task");
+var TestUtils = React.addons.TestUtils;
+
+describe("Addition task test", function() {
+
+    var task, form;
+
+    function taskDone() { console.log("task done"); };
+
+    beforeEach(function() {
+        task = AdditionTask( {steps:3, onTaskDone:taskDone} )
+        TestUtils.renderIntoDocument(task);
+    });
+
+    it("Should initialize variables upon render", function() {
+        expect(task.state.step).toEqual(1);
+        expect(task.state.a + task.state.b).toEqual(task.state.answer);
+    });
+
+    it("Should not increment step when submitting an empty answer", function() {
+        $(".btn-success").click()
+        expect(task.state.step).toEqual(1);
+    });
+
+    it("Should increment step when submitting corrent answer", function() {
+        task.handleAnswer(task.state.answer);
+        expect(task.state.step).toEqual(2);
+    });
+
+    it("Should not increment step when submitting incorrect answer", function() {
+       var currentStep = task.state.step;
+       task.handleAnswer(1000);
+       expect(task.state.step).toEqual(currentStep);
+    });
+
+    it("Should complete task after enough correct answers", function() {
+       for (var i = 0; i < task.props.steps; i++) {
+           task.handleAnswer(task.state.answer);
+       };
+       var taskDoneDisplay = TestUtils.findRenderedDOMComponentWithClass(task, "task-done-display");
+       expect(taskDoneDisplay).toBeDefined();
+    });
 });
 /* jshint ignore:end */
-},{"./js/application.js":1}]},{},[12])
+},{"../src/js/tasks/addition-task":6}]},{},[8])
