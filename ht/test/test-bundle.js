@@ -1178,10 +1178,11 @@ describe("Addition task test", function() {
        expect(task.state.step).toEqual(currentStep);
     });
 
-    it("Should complete task after enough correct answers", function() {
+    it("Should complete task and display a message after enough correct answers", function() {
        for (var i = 0; i < task.props.steps; i++) {
            task.handleAnswer(task.state.answer);
        };
+
        var taskDoneDisplay = TestUtils.findRenderedDOMComponentWithClass(task, "task-done-display");
        expect(taskDoneDisplay).toBeDefined();
     });
