@@ -7,12 +7,11 @@
 
 ## Run:
 
-    npm install
+`npm install`
 
-
-    npm start
+`npm start`
 
 
 ## Run tests:
 
-    npm test
+`npm test`
