@@ -47,7 +47,7 @@ var CoordsComponents = (function() {
    * @property {boolean} [drawAxes=true] - Whether the x and y axes are drawn.
    * @property {Array.<module:CoordsComponents.Shape>} [shapes=[]] - The geometric shapes to draw.
    * @property {Object} [bounds={maxY:10, maxX:10, minY:0, minX:0}] - Maximum coordinate values.
-   * @property {Object} [margin={top:10, right:10, bottom:10, left:10}] - Margin around the coordinate system.
+   * @property {Object} [margin={top:20, right:20, bottom:20, left:20}] - Margin around the coordinate system.
    * @property {number} [aspect=1] - Coordinate system aspect ratio.
    * @property {module:CoordsComponents.coordsOnClick} [onClick] - Click event handler.
    *
@@ -135,7 +135,7 @@ var CoordsComponents = (function() {
         shapes: [],
         bounds: {maxY:10, maxX:10, minY:0, minX:0},
         aspect: 1,
-        margin: {top:10, right:10, bottom:10, left:10}
+        margin: {top:20, right:20, bottom:20, left:20}
       };
     },
 
@@ -300,14 +300,17 @@ var CoordsComponents = (function() {
       var polygons = container.selectAll("polygon.shape")
         .data(props.data.filter(function(s) { return s.points.length > 2; }));
 
-      var addedPolygons = polygons.enter().append("polygon").attr("class", "shape");
+      var addedPolygons = polygons.enter().append("polygon")
+        .attr("class", "shape")
+        .attr("fill", function(d) { return d.fill || "transparent"; });
 
       polygons.transition().duration(transitionDuration)
         .attr("points", function(d) {
           return d.points.map(function(ps) {
             return [props.x(ps[0]), props.y(ps[1])];
           });
-        });
+        })
+        .attr("fill", function(d) { return d.fill || "transparent"; });
 
       polygons.exit().remove();
 
@@ -315,12 +318,15 @@ var CoordsComponents = (function() {
       var circles = container.selectAll("circle.shape")
         .data(props.data.filter(function(s) { return s.points.length == 1; }));
 
-      var addedCircles = circles.enter().append("circle").attr("class", "shape");
+      var addedCircles = circles.enter().append("circle")
+        .attr("class", "shape")
+        .attr("fill", function(d) { return d.fill || "transparent"; });
 
       circles.transition().duration(transitionDuration)
         .attr("cx", function(d) { return props.x(d.points[0][0]); })
         .attr("cy", function(d) { return props.y(d.points[0][1]); })
-        .attr("r", function(d) { return props.spacing * (d.r || 0.2); });
+        .attr("r", function(d) { return props.spacing * (d.r || 0.2); })
+        .attr("fill", function(d) { return d.fill || "transparent"; });
 
       circles.exit().remove();
 
@@ -328,13 +334,16 @@ var CoordsComponents = (function() {
       var lines = container.selectAll("line.shape")
         .data(props.data.filter(function(s) { return s.points.length == 2; }));
 
-      var addedLines = lines.enter().append("line").attr("class", "shape");
+      var addedLines = lines.enter().append("line")
+        .attr("class", "shape")
+        .attr("fill", function(d) { return d.fill || "transparent"; });
 
       lines.transition().duration(transitionDuration)
         .attr("x1", function(d) { return props.x(d.points[0][0]); })
         .attr("y1", function(d) { return props.y(d.points[0][1]); })
         .attr("x2", function(d) { return props.x(d.points[1][0]); })
-        .attr("y2", function(d) { return props.y(d.points[1][1]); });
+        .attr("y2", function(d) { return props.y(d.points[1][1]); })
+        .attr("fill", function(d) { return d.fill || "transparent"; });
 
       lines.exit().remove();
 
@@ -348,7 +357,6 @@ var CoordsComponents = (function() {
 
       // Set common attributes.
       container.selectAll(".shape")
-        .attr("fill", function(d) { return d.fill || "transparent"; })
         .attr("stroke", function(d) { return d.stroke || "steelblue"; })
         .attr("stroke-width", function(d) { return (d.strokeWidth || 2) + "px"; });
     },

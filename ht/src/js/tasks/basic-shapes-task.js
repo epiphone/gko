@@ -20,7 +20,7 @@ var BasicShapesTask = (function() {
       time: React.PropTypes.number.isRequired
     },
 
-    mixins: [Mixins.TriggerAnimationMixin, Mixins.SetTimeoutMixin],
+    mixins: [Mixins.SetTimeoutMixin],
 
     /**
      * Returns an array of six different shapes that fill the coords
@@ -92,10 +92,8 @@ var BasicShapesTask = (function() {
         scoreIncrement = -1;
       }
 
-      var elem = $(this.refs.score.getDOMNode());
       var anim = scoreIncrement > 0 ? "pulse" : "shake";
-      this.animate(elem, anim, 1000);
-
+      this.refs.score.triggerAnim(anim, 1000);
 
       this.setState({score: Math.max(this.state.score + scoreIncrement, 0)});
       this.reset();
@@ -123,6 +121,7 @@ var BasicShapesTask = (function() {
       var TaskHeader = TaskComponents.TaskHeader;
       var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
       var TaskCountdownTimer = TaskComponents.TaskCountdownTimer;
+      var TaskTriggerAnimDiv = TaskComponents.TaskTriggerAnimDiv;
 
       var shapes = this.state.shapes;
       var question, sidebar, timer;
@@ -148,9 +147,9 @@ var BasicShapesTask = (function() {
             <hr/>
             Klikattava kappale: <strong>{this.state.target.name}</strong>
             <hr/>
-            <div ref="score" className="animated text-center">
+            <TaskTriggerAnimDiv ref="score" className="animated text-center">
               Pisteet: <span className="label label-warning">{this.state.score}</span>
-            </div>
+            </TaskTriggerAnimDiv>
           </div>
         );
 

@@ -198,6 +198,34 @@ var TaskComponents = (function() {
     }
   });
 
+  /**
+   * A div with a method for applying CSS animation classes for a set duration.
+   * @name TaskTriggerAnimDiv
+   * @memberof module:TaskComponents
+   */
+  taskComponents.TaskTriggerAnimDiv = React.createClass({
+
+    mixins: [Mixins.TriggerAnimationMixin],
+
+    triggerAnim: function(animationClass, duration) {
+      animationClass = animationClass || "";
+      duration = duration || 1000;
+
+      var elem = $(this.getDOMNode());
+      this.animate(elem, animationClass, duration);
+    },
+
+    render: function() {
+      return this.transferPropsTo(
+        /* jshint ignore:start */
+        <div>
+          {this.props.children}
+        </div>
+        /* jshint ignore:end */
+      );
+    }
+  });
+
   return taskComponents;
 })();
 

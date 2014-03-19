@@ -6,7 +6,7 @@
 var AdditionTask = require("./tasks/addition-task");
 var SimpleCoordsTask = require("./tasks/simple-coords-task");
 var BasicShapesTask = require("./tasks/basic-shapes-task");
-
+var DrawShapesTask = require("./tasks/draw-shapes-task");
 
 /**
  * A small application with a few example tasks.
@@ -25,7 +25,7 @@ var Application = React.createClass({
   },
 
   getInitialState: function() {
-    return {selectedTask: "Yhteenlasku"};
+    return {selectedTask: "Kappaleiden piirtäminen"};
   },
 
   render: function() {
@@ -33,7 +33,8 @@ var Application = React.createClass({
     var tasks = {
       "Yhteenlasku": <AdditionTask onTaskDone={this.handleTaskDone} steps={5}/>,
       "Koordinaatiston lukeminen": <SimpleCoordsTask onTaskDone={this.handleTaskDone} steps={5}/>,
-      "Kappaleiden tunnistaminen": <BasicShapesTask onTaskDone={this.handleTaskDone} time={20}/>
+      "Kappaleiden tunnistaminen": <BasicShapesTask onTaskDone={this.handleTaskDone} time={20}/>,
+      "Kappaleiden piirtäminen": <DrawShapesTask onTaskDone={this.handleTaskDone} steps={5}/>
     };
 
     var taskListElems = Object.keys(tasks).map(function(taskName) {
