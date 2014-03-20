@@ -21,40 +21,42 @@ var DrawShapesTask = (function() {
     },
 
     reset: function() {
-      var target = {name: "kolmio", area: 4, vertices: 3};
+      var targetArea;
+      do {
+        targetArea = TaskUtils.randRange(1, 10);
+      } while (targetArea === this.state.targetArea);
 
       this.setState({
         shapes: [],
-        target: target,
+        targetArea: targetArea,
         coordsDisabled: false
       });
     },
 
     checkAnswer: function() {
+      var polygonPts = this.state.shapes.map(function(shape) {
+        return shape.points[0];
+      });
+      var triangle = {points: polygonPts, fill: "steelblue"};
+
       this.setState({
+        shapes: [triangle],
         coordsDisabled: true
       });
 
-      var shapes = this.state.shapes;
-
-      var polygonPts = shapes.map(function(shape) {
-        return shape.points[0];
-      });
-
-      shapes = [{points: polygonPts, fill: "steelblue"}];
-      this.setState({shapes: shapes});
-
-      var isCorrect = [true, false][Math.floor(Math.random() * 2)];
+      var isCorrect = TaskUtils.triangleArea(polygonPts) === this.state.targetArea;
 
       setTimeout(function() {
-        var polygon = this.state.shapes[0];
-        polygon.fill = isCorrect ? "#1AC834" : "#8B0000";
+        var anim = isCorrect ? "pulse" : "shake";
+        this.refs.animDiv.triggerAnim(anim);
 
-        this.setState({
-          shapes: [polygon],
-        });
+        triangle.fill = isCorrect ? "#1AC834" : "#8B0000";
+        this.setState({shapes: [triangle]});
 
-        setTimeout(this.reset, 1000);
+        setTimeout(function() {
+          if (isCorrect) this.handleCorrectAnswer();
+          this.reset();
+        }.bind(this), 1000);
 
       }.bind(this), 500);
     },
@@ -68,7 +70,6 @@ var DrawShapesTask = (function() {
       if (this.state.coordsDisabled || !this.state.isRunning)
         return;
 
-      var target = this.state.target;
       var shapes = this.state.shapes;
 
       var complement = shapes.filter(function(shape) {
@@ -77,34 +78,28 @@ var DrawShapesTask = (function() {
       });
 
       if (complement.length < shapes.length) {
-        // Remove a point
         shapes = complement;
       } else {
-        // Add a point
         var newShape = {points: [[x, y]]};
         shapes.push(newShape);
       }
 
       this.setState({shapes: shapes});
 
-      if (shapes.length === target.vertices) {
+      if (shapes.length === 3) {
         this.checkAnswer();
       }
     },
 
     handleCorrectAnswer: function() {
       var step = this.state.step;
-      if (step === this.props.steps)
-        this.props.onTaskDone();
-      else
-        this.reset();
-        this.setState({step: step + 1});
+      if (step === this.props.steps) this.props.onTaskDone();
+      this.setState({step: step + 1});
     },
 
     getInitialState: function() {
       return {
         step: 1,
-        answer: null,
         shapes: [],
         isRunning: false
       };
@@ -132,7 +127,9 @@ var DrawShapesTask = (function() {
             <div>
               <TaskPanel header="Ohjeet">
                 <TaskTriggerAnimDiv ref="animDiv">
-                  Piirrä <strong>{this.state.target.name}</strong>, jonka pinta-ala on <strong>{this.state.target.area}</strong>
+                  <span>
+                    Muodosta kolmio, jonka pinta-ala on <strong>{this.state.targetArea}</strong>
+                  </span>
                 </TaskTriggerAnimDiv>
               </TaskPanel>
             </div>
@@ -141,7 +138,7 @@ var DrawShapesTask = (function() {
           sidebar = (
             <div>
               <TaskPanel header="Ohjeet">
-                Piirrä ohjeiden mukainen tasokuvio klikkailemalla koordinaatistoa.
+                Muodosta ohjeiden mukainen kolmio klikkailemalla koordinaatistoa.
                 <hr/>
                 <button className="animated animated-repeat bounce btn btn-primary btn-block"
                 onClick={this.handleStartBtnClick}>
@@ -151,15 +148,13 @@ var DrawShapesTask = (function() {
             </div>
           );
         }
-
-      }
-      else {
+      } else {
         question = <TaskDoneDisplay score={this.props.steps}/>;
       }
 
       return (
         <div>
-          <TaskHeader name="Tasokuvioiden piirtäminen">
+          <TaskHeader name="Kolmioiden piirtäminen">
             <TaskProgressBar now={this.state.step} max={this.props.steps}/>
           </TaskHeader>
           <div className="row">

@@ -147,7 +147,7 @@ var BasicShapesTask = (function() {
             <hr/>
             Klikattava kappale: <strong>{this.state.target.name}</strong>
             <hr/>
-            <TaskTriggerAnimDiv ref="score" className="animated text-center">
+            <TaskTriggerAnimDiv ref="score" className="text-center">
               Pisteet: <span className="label label-warning">{this.state.score}</span>
             </TaskTriggerAnimDiv>
           </div>

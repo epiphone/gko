@@ -44,7 +44,8 @@ var SimpleCoordsTask = (function() {
         this.props.onTaskDone();
       else
         this.reset();
-        this.setState({step: step + 1});
+
+      this.setState({step: step + 1});
     },
 
     componentDidMount: function() {

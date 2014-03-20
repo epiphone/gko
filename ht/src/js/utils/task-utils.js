@@ -115,6 +115,21 @@ var TaskUtils = {
         });
     },
 
+    /**
+     * Calculate the area of a triangle.
+     * @param  {Array.<module:CoordsComponents.Point>} points
+     * @return {number}
+     */
+    triangleArea: function(points) {
+        if (points.length !== 3)
+            throw "invalid number of points";
+
+        var x1 = points[1][0] - points[0][0];
+        var y1 = points[1][1] - points[0][1];
+        var x2 = points[2][0] - points[0][0];
+        var y2 = points[2][1] - points[0][1];
+        return 0.5 * Math.abs(x1*y2 - x2*y1);
+    },
 
     /**
      * Compare given answer to the correct solution. Supports various data types.

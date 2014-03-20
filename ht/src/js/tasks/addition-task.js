@@ -29,6 +29,7 @@ var AdditionTask = (function() {
         b = TaskUtils.randRange(1, 11);
       }
       while (TaskUtils.matchesSolution([a,b], [this.state.a, this.state.b]));
+
       this.setState({
         a: a,
         b: b,
@@ -47,11 +48,12 @@ var AdditionTask = (function() {
 
     handleCorrectAnswer: function() {
       var step = this.state.step;
-      if (step === parseInt(this.props.steps))
+      if (step === this.props.steps)
         this.props.onTaskDone();
       else
         this.reset();
-        this.setState({step: step + 1});
+
+      this.setState({step: step + 1});
     },
 
     componentDidMount: function() {
@@ -73,7 +75,7 @@ var AdditionTask = (function() {
       var TaskDoneDisplay = TaskComponents.TaskDoneDisplay;
       var MathJax = MathComponents.MathJax;
 
-      var taskIsDone = this.state.step > parseInt(this.props.steps);
+      var taskIsDone = this.state.step > this.props.steps;
       var question, sidebar;
 
       if (!taskIsDone) {
