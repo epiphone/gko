@@ -9,15 +9,15 @@ var BasicShapesTask = require("./tasks/basic-shapes-task");
 var DrawShapesTask = require("./tasks/draw-shapes-task");
 
 /**
- * A small application with a few example tasks.
+ * A small application with a description of the component and a few example tasks.
  * @module Application
  */
 var Application = React.createClass({
 
   handleListClick: function(e) {
     e.preventDefault();
-    var taskName = e.target.text;
-    this.setState({selectedTask: taskName});
+    var elemName = e.target.text;
+    this.setState({selectedElem: elemName});
   },
 
   handleTaskDone: function() {
@@ -25,42 +25,42 @@ var Application = React.createClass({
   },
 
   getInitialState: function() {
-    return {selectedTask: "Yhteenlasku"};
+    return {selectedElem: "Yhteenlasku"};
   },
 
   render: function() {
     /* jshint ignore:start */
-    var tasks = {
+    var elems = {
       "Yhteenlasku": <AdditionTask onTaskDone={this.handleTaskDone} steps={5}/>,
       "Koordinaatiston lukeminen": <SimpleCoordsTask onTaskDone={this.handleTaskDone} steps={5}/>,
       "Kappaleiden tunnistaminen": <BasicShapesTask onTaskDone={this.handleTaskDone} time={20}/>,
-      "Kolmioiden piirtäminen": <DrawShapesTask onTaskDone={this.handleTaskDone} steps={3}/>
+      "Kolmioiden piirtäminen": <DrawShapesTask onTaskDone={this.handleTaskDone} steps={5}/>
     };
 
-    var taskListElems = Object.keys(tasks).map(function(taskName) {
-      var className = taskName === this.state.selectedTask ? "text-muted" : "";
+    var linkListElems = Object.keys(elems).map(function(elemName) {
+      var className = elemName === this.state.selectedElem ? "text-muted" : "";
       return (
         <li>
-          <a className={className} href="" onClick={this.handleListClick}>{taskName}</a>
+          <a className={className} href="" onClick={this.handleListClick}>{elemName}</a>
         </li>
       );
     }.bind(this));
 
-    var task = tasks[this.state.selectedTask];
+    var content = elems[this.state.selectedElem];
 
     return (
       <div>
         <ul className="list-inline">
-          {taskListElems}
+          {linkListElems}
         </ul>
-
         <div className="task-container">
-          {task}
+          {content}
         </div>
       </div>
     );
     /* jshint ignore:end */
   }
 });
+
 
 module.exports = Application;

@@ -11,6 +11,7 @@ var DrawShapesTask = (function() {
   var TaskUtils = require("../utils/task-utils");
   var TaskComponents = require("../components/task-components");
   var Coords = require("../components/coords-components").Coords;
+  var Mixins = require("../components/mixins");
 
 
   var drawShapesTask = React.createClass({
@@ -19,6 +20,8 @@ var DrawShapesTask = (function() {
       steps: React.PropTypes.number.isRequired,
       onTaskDone: React.PropTypes.func.isRequired
     },
+
+    mixins: [Mixins.SetTimeoutMixin],
 
     reset: function() {
       var targetArea;
@@ -46,14 +49,14 @@ var DrawShapesTask = (function() {
 
       var isCorrect = TaskUtils.triangleArea(polygonPts) === this.state.targetArea;
 
-      setTimeout(function() {
+      this.setTimeout(function() {
         var anim = isCorrect ? "pulse" : "shake";
         this.refs.animDiv.triggerAnim(anim);
 
         triangle.fill = isCorrect ? "#1AC834" : "#8B0000";
         this.setState({shapes: [triangle]});
 
-        setTimeout(function() {
+        this.setTimeout(function() {
           if (isCorrect) this.handleCorrectAnswer();
           this.reset();
         }.bind(this), 1000);
